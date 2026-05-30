@@ -12,6 +12,9 @@
     "dark": "/logo/brain-logo-dark.png"
   },
   "favicon": "/favicon.png",
+  "appearance": {
+    "default": "light"
+  },
   "navigation": {
     "tabs": [
       {
