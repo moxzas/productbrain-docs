@@ -1,0 +1,112 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "ProductBrain",
+  "theme": "mint",
+  "colors": {
+    "primary": "#9473df",
+    "light": "#b49aef",
+    "dark": "#7c5cc7"
+  },
+  "logo": {
+    "light": "/logo/brain-logo-light.png",
+    "dark": "/logo/brain-logo-dark.png"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "guides/introduction",
+              "guides/quickstart",
+              "guides/first-brain"
+            ]
+          },
+          {
+            "group": "How-To",
+            "pages": [
+              "guides/create-iterations",
+              "guides/assign-jobs",
+              "guides/delivery-map"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Framework",
+        "groups": [
+          {
+            "group": "The Model",
+            "pages": [
+              "framework/overview",
+              "framework/goals",
+              "framework/needs",
+              "framework/approaches",
+              "framework/jobs"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "framework/tree-vs-matrix",
+              "framework/iterations",
+              "framework/kano"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/nodes",
+              "api-reference/search",
+              "api-reference/mutations",
+              "api-reference/iterations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Use Cases",
+        "groups": [
+          {
+            "group": "Workflows",
+            "pages": [
+              "use-cases/solo-founder",
+              "use-cases/builder-with-agents",
+              "use-cases/pm-strategist"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Releases",
+            "pages": [
+              "changelog/2026-05-29",
+              "changelog/2026-05-23"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footerSocials": {
+    "github": "https://github.com/moxzas/productbrain"
+  }
+}

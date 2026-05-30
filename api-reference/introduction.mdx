@@ -1,0 +1,48 @@
+---
+title: "API Overview"
+description: "Read, search, and mutate your ProductBrain project programmatically."
+---
+
+The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It's the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
+
+## Base URL
+
+```
+https://productbrain.com/api
+```
+
+## Authentication
+
+All requests require a Bearer token — either a per-user API key or a Clerk session JWT.
+
+```bash
+curl -H "Authorization: Bearer pb_your_api_key" \
+  https://productbrain.com/api/nodes?projectId=your-project
+```
+
+API keys are generated from Settings in the app. Each key is scoped to the projects owned by the key's user.
+
+## Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/nodes` | GET | List all nodes in a project (filterable by type, iteration) |
+| `/api/search` | GET | Semantic search over nodes using vector embeddings |
+| `/api/mutate` | POST | Create, update, or delete nodes |
+| `/api/iterations` | GET | List iterations (filterable by status, `&current=true` for active) |
+| `/api/tree` | GET | Get a node with its ancestors, siblings, and children |
+
+## Key Concepts
+
+<CardGroup cols={2}>
+  <Card title="Search First" icon="magnifying-glass">
+    Use `/api/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — the search endpoint uses vector embeddings for semantic matching.
+  </Card>
+  <Card title="Mutations are atomic" icon="bolt">
+    Each `/api/mutate` call performs one operation: add, update, or delete. Batch mutations use the app's internal batch endpoint.
+  </Card>
+</CardGroup>
+
+## Full Reference
+
+For the complete API contract — data model, field validation rules, hierarchy constraints, and worked examples — see the [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md).
