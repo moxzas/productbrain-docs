@@ -1,0 +1,44 @@
+---
+title: "For Builders"
+description: "A structured planning surface your AI agents can read and write to."
+---
+
+You ship with AI agents — Claude Code, Cursor, Copilot Workspace, or similar. You're productive, but you've lost track of the bigger picture. Features land, but you can't answer "why did I build that?" or "what should I build next?"
+
+## What ProductBrain does for you
+
+### A control surface for agents
+
+Your AI agent reads the planning tree to understand what to build and why. When it ships something, it writes back — marking jobs done, adding notes, flagging blockers. The tree is the shared state between you and your agents.
+
+### Structure without ceremony
+
+No standups, no sprint planning, no story points. The tree captures your strategy (goals → needs → approaches) and the Delivery Map shows what's shipping when. Your agent consumes this through the API — it knows what iteration it's working in and what proof of delivery looks like.
+
+### Jobs are acceptance criteria
+
+Each job describes an observable result your agent should produce — not an implementation step. "Price comparison shows for scanned barcode" tells the agent what to verify. The agent decides how to implement it.
+
+### One API, full access
+
+Read the tree, search by meaning, create nodes, update status, manage iterations. The same API the app uses. Your agent gets a structured view of the entire project with one authenticated call.
+
+## How it fits your workflow
+
+1. **Set up your project** — Map out goals, needs, and approaches (in the UI or via API)
+2. **Get your API key** — One click from Settings, copy the quickstart snippet
+3. **Give it to your agent** — Paste the snippet into your Claude Code session or agent config
+4. **Agent reads the tree** — It knows what to build, what iteration it's in, and what proof to produce
+5. **Agent writes back** — Marks jobs done, adds notes, flags issues
+6. **You review** — Check the Delivery Map to see progress across all your bets
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Builder Quickstart" icon="rocket" href="/guides/builder-quickstart">
+    Get your API key and connect your first agent in 2 minutes.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/introduction">
+    Full endpoint documentation for agent integration.
+  </Card>
+</CardGroup>

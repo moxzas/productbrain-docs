@@ -1,0 +1,64 @@
+---
+title: "Builder Quickstart"
+description: "Get your API key and connect your first agent in 2 minutes."
+---
+
+## 1. Get your API key
+
+Go to **Settings** in the app. Under API Keys, click **Generate**. You'll get a `pb_...` key and a ready-to-use snippet.
+
+## 2. Copy the quickstart snippet
+
+The modal gives you everything your agent needs in one block:
+
+```
+Documentation: https://productbrain.com/docs/llm-guide.md
+Base URL: https://productbrain.com/api
+API Key: pb_your_key_here
+Project ID: your-project-id
+```
+
+## 3. Give it to your agent
+
+Paste the snippet into your Claude Code session, Cursor config, or any LLM agent. The agent reads the LLM Guide first, then uses the API to understand your project.
+
+**Claude Code example:**
+```
+Read the documentation at https://productbrain.com/docs/llm-guide.md
+then use the API to understand what I'm building and what to work on next.
+
+Base URL: https://productbrain.com/api
+API Key: pb_your_key_here
+Project ID: your-project-id
+```
+
+## 4. Agent reads the tree
+
+The agent calls `GET /api/nodes?projectId=...` to see your full planning tree, and `GET /api/iterations?projectId=...&current=true` to find the active iteration. It knows what to build and what proof to produce.
+
+## 5. Agent writes back
+
+As the agent works, it updates the tree:
+
+```bash
+# Mark a job done
+curl -X POST "$API_URL/mutate" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "update", "projectId": "your-project", "nodeId": "job-42", "data": {"status": "done"}}'
+```
+
+## 6. You review
+
+Open the Delivery Map in the app. See which jobs the agent has completed, what's still open, and how your bets are progressing across iterations.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference/introduction">
+    Full endpoint docs — nodes, search, mutations, iterations.
+  </Card>
+  <Card title="LLM Operations Guide" icon="book" href="https://productbrain.com/docs/llm-guide.md">
+    The canonical reference your agent reads. Data model, field rules, all endpoints.
+  </Card>
+</CardGroup>

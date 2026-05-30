@@ -24,16 +24,24 @@
             "group": "Getting Started",
             "pages": [
               "guides/introduction",
-              "guides/quickstart",
-              "guides/first-brain"
+              "guides/strategist-intro",
+              "guides/builder-intro"
             ]
           },
           {
-            "group": "How-To",
+            "group": "Strategist Quickstart",
             "pages": [
+              "guides/strategist-quickstart",
+              "guides/first-brain",
               "guides/create-iterations",
               "guides/assign-jobs",
               "guides/delivery-map"
+            ]
+          },
+          {
+            "group": "Builder Quickstart",
+            "pages": [
+              "guides/builder-quickstart"
             ]
           }
         ]
@@ -113,4 +121,3 @@
     "github": "https://github.com/moxzas/productbrain"
   }
 }
-
