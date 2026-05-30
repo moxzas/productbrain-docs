@@ -1,0 +1,58 @@
+---
+title: "The Model"
+description: "Goal → Need → Approach → Job. Four levels that trace any work to its business outcome."
+---
+
+ProductBrain uses a four-level hierarchy to structure product thinking. Every piece of work traces back through a logical chain to a business outcome.
+
+```
+Goal
+ └── Need
+      └── Approach
+           └── Job
+```
+
+## The Levels
+
+### Goals — What's the business outcome?
+
+Goals are the top of the tree. They describe what success looks like for the business — revenue, retention, market position. Goals are not tasks or features.
+
+**Example:** "Deliver a usable bi-modal planning tool"
+
+### Needs — What must be true for the goal to succeed?
+
+Needs describe the conditions required to achieve the goal. Multiple needs can serve the same goal, and they help you see the full surface area of what the goal demands.
+
+**Example:** "Users can model product strategy quickly"
+
+### Approaches — What's our scoped bet?
+
+Approaches are the bets you place. Each approach is a hypothesis about how to satisfy a need. You might have multiple approaches for the same need — that's healthy. It means you're exploring.
+
+Each approach carries a **measure** — how you'll know if the bet paid off.
+
+**Example:** "Inline chat in side panel" (measure: users create 3+ nodes per session via chat)
+
+### Jobs — What's the proof?
+
+Jobs are **not implementation tasks.** A job describes observable proof that an approach is working. The label says what you'd see. The description says where to verify it.
+
+<Warning>
+Jobs are acceptance criteria — verifiable checkpoints that prove a bet is being delivered. They are not a backlog. There is no doing → QA → done pipeline. A job is either proven or it isn't.
+</Warning>
+
+**Good job:** "Price comparison shows for scanned barcode"
+**Bad job:** "Add API call to fetch prices"
+
+## How It Fits Together
+
+The hierarchy creates a logical chain:
+
+> We need to **[goal]**. For that to work, **[need]** must be true. We're betting that **[approach]** will get us there. We'll know it's working when **[job]**.
+
+This chain means you can always answer "why are we building this?" for any piece of work. And when priorities shift, you can trace the impact up and down the tree.
+
+## What's Not in the Tree
+
+**Tasks** are standalone items that live outside the hierarchy — bugs, polish, ideas captured mid-flow. They appear in the Misc column of the Delivery Map. When you're not sure where something belongs, capture it as a task and sort it later.
