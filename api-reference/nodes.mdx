@@ -1,6 +1,110 @@
 ---
 title: "Nodes"
-description: ""
+description: "List and filter nodes in a project."
 ---
 
-<Info>This page is coming soon.</Info>
+## List Nodes
+
+```
+GET /api/nodes?projectId={projectId}
+```
+
+Returns all nodes in a project, ordered by creation date.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `projectId` | Yes | The project to query |
+| `type` | No | Filter by node type: `goal`, `need`, `approach`, `job`, `task` |
+| `iteration` | No | Filter by iteration name (jobs and tasks only) |
+
+### Example
+
+```bash
+# All nodes
+curl -s "https://productbrain.com/api/nodes?projectId=my-project" \
+  -H "Authorization: Bearer pb_..."
+
+# Goals only
+curl -s "https://productbrain.com/api/nodes?projectId=my-project&type=goal" \
+  -H "Authorization: Bearer pb_..."
+
+# Jobs in a specific iteration
+curl -s "https://productbrain.com/api/nodes?projectId=my-project&type=job&iteration=MVP" \
+  -H "Authorization: Bearer pb_..."
+```
+
+### Response
+
+```json
+{
+  "nodes": [
+    {
+      "id": "goal-1",
+      "type": "goal",
+      "parentId": null,
+      "data": {
+        "label": "Help shoppers save money",
+        "description": "Core value prop."
+      }
+    },
+    {
+      "id": "need-1",
+      "type": "need",
+      "parentId": "goal-1",
+      "data": {
+        "label": "Compare prices across stores"
+      }
+    }
+  ],
+  "_meta": {
+    "currentIteration": "MVP",
+    "iterations": {
+      "active": ["MVP", "Later"],
+      "total": 3
+    },
+    "nodeCounts": {
+      "goal": 2,
+      "need": 5,
+      "approach": 8,
+      "job": 23,
+      "task": 4
+    }
+  }
+}
+```
+
+<Note>
+If you're looking for a specific node by concept, use [Search](/api-reference/search) instead of pulling all nodes and filtering. Search uses semantic matching and returns ranked results with ancestor paths.
+</Note>
+
+## Node Structure
+
+Every node has:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Auto-generated: `{type}-{number}` (e.g. `job-42`) |
+| `type` | string | `goal`, `need`, `approach`, `job`, or `task` |
+| `parentId` | string \| null | Parent node ID. Null for goals and tasks. |
+| `data` | object | Node content — label, description, and type-specific fields |
+
+### Data fields by type
+
+| Field | Type | Valid on | Description |
+|-------|------|----------|-------------|
+| `label` | string | all | Node title (required) |
+| `description` | string | all | Human-readable summary |
+| `notes` | string | approach, job | Extended context, rationale, implementation detail |
+| `iteration` | string | job, task | Which iteration this is assigned to |
+| `status` | string | job, task | `"done"` or absent |
+| `maturity` | string | job | `"mvp"` or `"releasable"` |
+| `measure` | string | approach | How you'll know the bet paid off |
+| `kano` | string | approach | `"must-have"`, `"performance"`, or `"delighter"` |
+| `size` | string | approach | `"skateboard"`, `"vespa"`, `"car"`, `"truck"`, `"antonov"` |
+| `approachStatus` | string | approach | `"development"`, `"validation"`, `"resolved"`, `"retired"` |
+| `goalStatus` | string | goal | `"focus"`, `"later"`, `"done"` |
+| `blockedBy` | string[] | approach | IDs of blocking approaches |
+
+Setting a field on the wrong node type is rejected by the API.

@@ -1,6 +1,137 @@
 ---
 title: "Mutations"
-description: ""
+description: "Create, update, and delete nodes."
 ---
 
-<Info>This page is coming soon.</Info>
+All writes go through a single endpoint. The `action` field determines the operation.
+
+```
+POST /api/mutate
+```
+
+## Add a Node
+
+Creates a new node with an auto-generated ID.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "add",
+    "projectId": "my-project",
+    "node": {
+      "type": "job",
+      "parentId": "approach-1",
+      "data": {
+        "label": "Upload progress bar reaches 100% for a 500MB file",
+        "maturity": "mvp",
+        "iteration": "MVP"
+      }
+    }
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "node": {
+    "id": "job-199",
+    "type": "job",
+    "parentId": "approach-1",
+    "data": {
+      "label": "Upload progress bar reaches 100% for a 500MB file",
+      "maturity": "mvp",
+      "iteration": "MVP"
+    }
+  }
+}
+```
+
+### Parent rules
+
+| Type | Parent required | Parent type |
+|------|-----------------|-------------|
+| Goal | No | — |
+| Need | Yes | Goal |
+| Approach | Yes | Need |
+| Job | Yes | Approach |
+| Task | No | — |
+
+## Update a Node
+
+PATCH semantics — only include fields you want to change. Existing fields are preserved.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "update",
+    "projectId": "my-project",
+    "nodeId": "job-45",
+    "data": { "status": "done" }
+  }'
+```
+
+To mark a job as not done, set `status` to `null`.
+
+## Delete a Node
+
+Hard delete — permanent, no undo. An audit trail is kept in the changelog.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "delete",
+    "projectId": "my-project",
+    "nodeId": "job-99"
+  }'
+```
+
+## Batch Mutations
+
+Multiple operations in a single request. All-or-nothing — if any mutation fails validation, the entire batch is rejected.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "batch",
+    "projectId": "my-project",
+    "mutations": [
+      {
+        "action": "add",
+        "node": {
+          "type": "job",
+          "parentId": "approach-1",
+          "data": { "label": "First checkpoint", "iteration": "MVP" }
+        }
+      },
+      {
+        "action": "update",
+        "nodeId": "job-100",
+        "data": { "status": "done" }
+      }
+    ]
+  }'
+```
+
+## Validation
+
+The API validates all mutations before applying them:
+
+- **Label is required** on all nodes
+- **Parent must exist** and be the correct type (need under goal, approach under need, etc.)
+- **Fields must match node type** — setting `iteration` on a goal or `maturity` on a task is rejected
+- **Kano values:** `must-have`, `performance`, `delighter`
+- **Size values:** `skateboard`, `vespa`, `car`, `truck`, `antonov`
+- **Maturity values:** `mvp`, `releasable`
+- **Approach status values:** `development`, `validation`, `resolved`, `retired`
+
+Validation errors return `{ "success": false, "errors": ["..."] }`.

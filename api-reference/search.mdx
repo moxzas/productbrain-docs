@@ -1,6 +1,75 @@
 ---
 title: "Search"
-description: ""
+description: "Find nodes by meaning using semantic search."
 ---
 
-<Info>This page is coming soon.</Info>
+## Semantic Search
+
+```
+GET /api/search?projectId={projectId}&q={query}
+```
+
+Finds nodes by meaning, not exact text match. Every node has a vector embedding — search matches by semantic similarity and returns ranked results with ancestor paths.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `projectId` | Yes | The project to search |
+| `q` | Yes | Natural language search query |
+| `type` | No | Filter results by node type |
+| `limit` | No | Max results (default 5, max 20) |
+
+### Example
+
+```bash
+curl -s "https://productbrain.com/api/search?projectId=my-project&q=reduce+churn+through+onboarding&limit=5" \
+  -H "Authorization: Bearer pb_..."
+```
+
+### Response
+
+```json
+{
+  "results": [
+    {
+      "node": {
+        "id": "approach-42",
+        "type": "approach",
+        "parentId": "need-8",
+        "data": {
+          "label": "Guided onboarding wizard",
+          "measure": "80% of new users complete the wizard"
+        }
+      },
+      "similarity": 0.847,
+      "ancestors": [
+        {
+          "id": "need-8",
+          "type": "need",
+          "label": "New users reach first value quickly"
+        },
+        {
+          "id": "goal-3",
+          "type": "goal",
+          "label": "Reduce churn in first 7 days"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Results are ranked by similarity score (0–1). The `ancestors` array shows the full lineage from the node to the root goal, ordered from immediate parent to root.
+
+### When to use Search
+
+| I need to... | Use |
+|---|---|
+| Find a node by concept or description | Search |
+| Check if work already exists before creating | Search |
+| Find the right parent for a new node | Search |
+| List all jobs in an iteration | [Nodes](/api-reference/nodes) with `type` and `iteration` filters |
+| Export the full tree | [Nodes](/api-reference/nodes) |
+
+Search is the default operation. Use it before creating nodes to avoid duplicates and to find the right placement.
