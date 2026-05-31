@@ -20,18 +20,57 @@ curl -H "Authorization: Bearer pb_your_api_key" \
   https://productbrain.com/api/nodes?projectId=your-project
 ```
 
-See [Authentication](/api-reference/authentication) for details on key generation, scoping, and rate limits.
+Keys start with `pb_`, are scoped to your projects, and can be generated from **Settings → API Keys**. See [Authentication](/api-reference/authentication) for details.
 
-## Endpoints
+## Endpoints at a Glance
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| [`/api/nodes`](/api-reference/nodes) | GET | List nodes (filterable by type, iteration) |
-| [`/api/search`](/api-reference/search) | GET | Semantic search over nodes |
-| [`/api/mutate`](/api-reference/mutations) | POST | Create, update, or delete nodes and iterations |
-| [`/api/iterations`](/api-reference/iterations) | GET | List iterations (filterable by status) |
-| `/api/tree` | GET | Navigate the tree — ancestors, siblings, children |
-| `/api/projects` | GET | List your projects |
+### Search nodes by meaning
+
+```bash
+GET /api/search?projectId=my-project&q=onboarding+flow&limit=3
+# → { results: [{ node: { id, type, data }, similarity: 0.85, ancestors: [...] }] }
+```
+
+### List nodes (with filters)
+
+```bash
+GET /api/nodes?projectId=my-project&type=job&iteration=MVP
+# → { nodes: [{ id, type, parentId, data }], _meta: { currentIteration, nodeCounts } }
+```
+
+### Create a node
+
+```bash
+POST /api/mutate
+{ "action": "add", "projectId": "my-project",
+  "node": { "type": "job", "parentId": "approach-1",
+    "data": { "label": "Upload progress reaches 100%", "iteration": "MVP" } } }
+# → { success: true, node: { id: "job-42", ... } }
+```
+
+### Update a node
+
+```bash
+POST /api/mutate
+{ "action": "update", "projectId": "my-project",
+  "nodeId": "job-42", "data": { "status": "done" } }
+```
+
+### Get current iteration
+
+```bash
+GET /api/iterations?projectId=my-project&current=true
+# → { iteration: { name: "MVP", status: "active" } }
+```
+
+### Navigate the tree
+
+```bash
+GET /api/tree?projectId=my-project&nodeId=approach-1&direction=context
+# → { ancestors: [...], siblings: [...], children: [...] }
+```
+
+Full details: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) · [Mutations](/api-reference/mutations) · [Iterations](/api-reference/iterations)
 
 ## Key Principles
 
