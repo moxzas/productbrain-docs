@@ -9,14 +9,27 @@ The same dataset renders as either a **Planning Tree** (strategy) or a **Deliver
 
 ## The Problem
 
-Anyone who has ever defended a roadmap to a stakeholder knows the feeling: the logic is in your head, but it's not traceable. You know why you're building this feature instead of that one, but you can't show the chain of reasoning. When priorities shift, nobody can see the cascade of impact.
+You have more bets in flight than you can hold in your head. Features, experiments, infrastructure, polish — each one made sense when you started it. But right now, you can only focus on a handful. While you're heads-down on those, everything else is waiting. And you can't see what's waiting, how long it's been waiting, or whether it still matters.
+
+The real cost isn't what you're building. It's what you're *not* building — and not knowing whether that's the right call.
 
 Meanwhile, the tools you have don't help:
 - **Project trackers** track tasks, not strategy. They know what you're doing but not why.
 - **Whiteboards** capture ideas, not structure. Everyone knows how to fill one. Nobody knows what to do after the session ends and the wall is full.
 - **Slide decks** communicate a point-in-time snapshot that's stale by the time you present it.
 
-ProductBrain makes the logic **traceable and always current**. Every piece of work traces through a chain — job → approach → need → goal — that answers "why are we building this?" for anyone who asks. When you add a third approach under a need, you see the other two get relatively smaller. When you tag jobs to an iteration, you see what's *not* in the iteration. The tradeoffs are visible by default.
+None of them show you the full landscape of bets — which goals they serve, which needs they address, and what you're leaving on the table while you focus on what's in front of you.
+
+## What ProductBrain Does
+
+ProductBrain makes every bet visible alongside every other bet. You can see:
+
+- **What you're working on** and what strategic outcome it serves
+- **What you're not working on** and whether that's a conscious choice or an oversight
+- **Where your bets cluster** — three approaches under one goal, none under another
+- **What's waiting** — deferred work that's still connected to real business needs
+
+The tree doesn't make decisions for you. It makes the decisions you've already made — and the ones you haven't — impossible to ignore. When you can see everything at once, the right priorities become obvious in a way they never are inside a flat task list.
 
 ## The Model Is the Time Saver
 
@@ -26,7 +39,7 @@ The consistent hierarchy — Goal → Need → Approach → Job — means everyo
 
 <CardGroup cols={2}>
   <Card title="Planning Tree" icon="diagram-project">
-    **Goal → Need → Approach → Job.** The strategic view. Trace any piece of work back to the business outcome it serves. See what you're betting on and why.
+    **Goal → Need → Approach → Job.** The strategic view. See every bet, what it serves, and what's getting attention vs what's being deferred.
   </Card>
   <Card title="Delivery Map" icon="table-columns">
     **Approaches × Iterations.** The execution view. Bundle work into releases. See what ships when, and what proof you need that each bet is paying off.
