@@ -1,6 +1,138 @@
 ---
 title: "Iterations"
-description: ""
+description: "List, create, update, and reorder iterations."
 ---
 
-<Info>This page is coming soon.</Info>
+Iterations are thematic delivery slices — bundles of work that ship together. They are not sprints (no fixed timebox) and not releases (no deployment coupling).
+
+## List Iterations
+
+```
+GET /api/iterations?projectId={projectId}
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `projectId` | Yes | The project to query |
+| `status` | No | Filter: `active` or `done` |
+| `current` | No | Set to `true` to get only the current iteration |
+
+### Get all iterations
+
+```bash
+curl -s "https://productbrain.com/api/iterations?projectId=my-project" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "iterations": [
+    {
+      "name": "MVP",
+      "status": "active",
+      "system": false,
+      "sortOrder": 1
+    },
+    {
+      "name": "Later",
+      "status": "active",
+      "system": true,
+      "sortOrder": 99
+    }
+  ]
+}
+```
+
+### Get the current iteration
+
+The current iteration is the first active, non-system iteration by sort order. Use this when you need to know what's being worked on now.
+
+```bash
+curl -s "https://productbrain.com/api/iterations?projectId=my-project&current=true" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "iteration": {
+    "name": "MVP",
+    "status": "active",
+    "system": false,
+    "sortOrder": 1
+  }
+}
+```
+
+### Iteration fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Iteration name (unique within project) |
+| `status` | string | `active` or `done` |
+| `system` | boolean | System iterations (e.g. "Later") can't be deleted |
+| `sortOrder` | number | Display order |
+| `gitTags` | string[] | Associated git tags (optional) |
+| `completedAt` | number | Timestamp when marked done (auto-set) |
+
+## Create an Iteration
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "addIteration",
+    "projectId": "my-project",
+    "iteration": { "name": "Phase 2" }
+  }'
+```
+
+## Update an Iteration
+
+PATCH semantics. Use this to rename, mark done, or add git tags.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "updateIteration",
+    "projectId": "my-project",
+    "iterationName": "MVP",
+    "data": { "status": "done" }
+  }'
+```
+
+Marking an iteration as `done` automatically sets `completedAt`. Done iterations are hidden from the UI dropdown and matrix view.
+
+## Delete an Iteration
+
+System iterations (e.g. "Later") cannot be deleted.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "deleteIteration",
+    "projectId": "my-project",
+    "iterationName": "Phase 2"
+  }'
+```
+
+## Reorder Iterations
+
+Pass the full ordered list of iteration names.
+
+```bash
+curl -X POST "https://productbrain.com/api/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "reorderIterations",
+    "projectId": "my-project",
+    "order": ["MVP", "Phase 2", "Phase 3", "Later"]
+  }'
+```

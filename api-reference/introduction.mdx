@@ -13,36 +13,39 @@ https://productbrain.com/api
 
 ## Authentication
 
-All requests require a Bearer token — either a per-user API key or a Clerk session JWT.
+All requests require a Bearer token — a per-user API key generated from the app.
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
   https://productbrain.com/api/nodes?projectId=your-project
 ```
 
-API keys are generated from Settings in the app. Each key is scoped to the projects owned by the key's user.
+See [Authentication](/api-reference/authentication) for details on key generation, scoping, and rate limits.
 
 ## Endpoints
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/nodes` | GET | List all nodes in a project (filterable by type, iteration) |
-| `/api/search` | GET | Semantic search over nodes using vector embeddings |
-| `/api/mutate` | POST | Create, update, or delete nodes |
-| `/api/iterations` | GET | List iterations (filterable by status, `&current=true` for active) |
-| `/api/tree` | GET | Get a node with its ancestors, siblings, and children |
+| [`/api/nodes`](/api-reference/nodes) | GET | List nodes (filterable by type, iteration) |
+| [`/api/search`](/api-reference/search) | GET | Semantic search over nodes |
+| [`/api/mutate`](/api-reference/mutations) | POST | Create, update, or delete nodes and iterations |
+| [`/api/iterations`](/api-reference/iterations) | GET | List iterations (filterable by status) |
+| `/api/tree` | GET | Navigate the tree — ancestors, siblings, children |
+| `/api/projects` | GET | List your projects |
 
-## Key Concepts
+## Key Principles
 
 <CardGroup cols={2}>
-  <Card title="Search First" icon="magnifying-glass">
-    Use `/api/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — the search endpoint uses vector embeddings for semantic matching.
+  <Card title="Search first" icon="magnifying-glass" href="/api-reference/search">
+    Use `/api/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — search uses vector embeddings and returns ranked results with ancestor paths.
   </Card>
-  <Card title="Mutations are atomic" icon="bolt">
-    Each `/api/mutate` call performs one operation: add, update, or delete. Batch mutations use the app's internal batch endpoint.
+  <Card title="One write endpoint" icon="bolt" href="/api-reference/mutations">
+    All writes go through `/api/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, or `batch`.
   </Card>
 </CardGroup>
 
-## Full Reference
+## For LLM Agents
 
-For the complete API contract — data model, field validation rules, hierarchy constraints, and worked examples — see the [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md).
+The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the canonical reference for any AI agent operating on ProductBrain. It covers the data model, hierarchy rules, field validation, placement workflow, and worked examples for generating a brain from a codebase or artifact.
+
+Give your agent this URL and your API key — it has everything it needs to get started.

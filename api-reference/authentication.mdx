@@ -1,6 +1,64 @@
 ---
 title: "Authentication"
-description: ""
+description: "API keys and how to authenticate requests."
 ---
 
-<Info>This page is coming soon.</Info>
+All API requests require a Bearer token in the `Authorization` header.
+
+```bash
+curl -H "Authorization: Bearer pb_your_api_key" \
+  https://productbrain.com/api/nodes?projectId=your-project
+```
+
+## API Keys
+
+API keys are per-user. Each key grants access only to projects owned by the key's user.
+
+### Generate a key
+
+Go to **Settings → API Keys** in the app. Click **Generate**. You'll get a `pb_...` key and a ready-to-use snippet with your base URL and project ID.
+
+### Key format
+
+Keys start with `pb_` followed by a random string. They are hashed server-side — ProductBrain never stores the raw key. If you lose it, generate a new one.
+
+### Revoke a key
+
+From the same settings page, click **Revoke**. The key stops working immediately. Generate a new one if needed.
+
+## Scoping
+
+API keys are scoped to the user, not a specific project. If you own multiple projects, the same key works for all of them. The `projectId` parameter on each request determines which project you're operating on.
+
+Attempting to access a project you don't own returns:
+
+```json
+{
+  "error": "project_access_denied",
+  "message": "API key does not have access to this project"
+}
+```
+
+## Finding your Project ID
+
+```bash
+curl -s https://productbrain.com/api/projects \
+  -H "Authorization: Bearer pb_your_api_key"
+```
+
+Returns:
+
+```json
+{
+  "projects": [
+    { "id": "my-project", "name": "My Project" },
+    { "id": "example-lectureflow", "name": "Example: LectureFlow" }
+  ]
+}
+```
+
+Use the `id` value as `projectId` in all subsequent requests.
+
+## Rate Limits
+
+API requests are rate-limited to **100 requests per 60 seconds** per IP address. Blocked requests return `429 Too Many Requests`.
