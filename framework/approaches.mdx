@@ -61,12 +61,6 @@ The anti-pattern is an approach that has jobs in every iteration continuously. T
 
 ## Common pitfalls
 
-### Mixed priorities that never close
-
-If an approach has a mix of must-have jobs (done) and nice-to-have jobs (still open), it will sit in "development" forever. The core work shipped, but the polish lingers and the approach never moves to validation.
-
-The fix: split it. One approach for the baseline bet, another for the enhancement. The baseline can move to validation and be measured. The enhancement is a separate bet with its own measure and its own timeline.
-
 ### Infrastructure without a consumer
 
 An approach that describes infrastructure ("generic API layer", "flexible abstraction") without a feature that uses it in the same iteration is premature. Design for growth — but build for now. The simplest version that unblocks real functionality is the right scope. The abstraction layer can wait until you have a second use case.
