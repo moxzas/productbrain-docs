@@ -19,6 +19,10 @@ No standups, no sprint planning, no story points. The tree captures your strateg
 
 Each job describes an observable result your agent should produce — not an implementation step. "Price comparison shows for scanned barcode" tells the agent what to verify. The agent decides how to implement it.
 
+### Context survives compaction
+
+LLM agents lose context. Sessions end, conversations compact, and the agent forgets what it was doing. The tree is the fix — it's external memory that persists regardless of what happens to the agent's context window. After a compaction, the agent reads the tree and knows exactly where it left off: what's done, what's next, what the current iteration is. No re-briefing. No lost progress.
+
 ### One API, full access
 
 Read the tree, search by meaning, create nodes, update status, manage iterations. The same API the app uses. Your agent gets a structured view of the entire project with one authenticated call.
