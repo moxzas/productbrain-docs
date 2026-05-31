@@ -1,6 +1,53 @@
 ---
-title: "Builder With Agents"
-description: ""
+title: "Builder with AI Agents"
+description: "Give your AI agents a structured planning surface to read from and write back to."
 ---
 
-<Info>This page is coming soon.</Info>
+You're shipping with Claude Code, Cursor, or similar AI agents. They're productive — but they operate in a vacuum. Each session starts from scratch. The agent doesn't know what you shipped yesterday, what's coming next, or how this feature connects to the business.
+
+## The problem
+
+Without shared state, you're the bottleneck. You brief the agent every session, manually track what's done, and hope you don't duplicate work or miss a dependency. The agent is fast but blind.
+
+## How ProductBrain helps
+
+### Shared state
+
+Your planning tree is the shared context between you and your agents. The agent reads the tree to understand:
+- What goal this work serves
+- What approach it's delivering
+- What jobs remain in the current iteration
+- What "done" looks like for each job
+
+### Agent workflow
+
+```
+1. Agent reads the tree via API
+2. Agent finds the current iteration
+3. Agent picks the next undone job
+4. Agent reads the job description (what to verify)
+   and notes (how to build it)
+5. Agent does the work
+6. Agent verifies the checkpoint
+7. Agent marks the job done via API
+8. Repeat
+```
+
+### You stay strategic
+
+While the agent executes, you work in the Planning Tree. Review approaches, adjust priorities, add new needs based on what you're learning. The agent picks up changes automatically — next time it reads the tree, it sees the updated plan.
+
+## Setup
+
+1. Generate an API key from Settings
+2. Copy the quickstart snippet (includes docs URL, base URL, key, project ID)
+3. Paste into your agent session
+4. The agent reads the [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) and starts working
+
+## What changes
+
+- Agents have context across sessions — no re-briefing
+- Work is automatically tracked — jobs marked done as the agent ships
+- You can run multiple agents on different approaches simultaneously
+- The Delivery Map shows real-time progress across all your bets
+- Agent output is verifiable — each job describes what to check

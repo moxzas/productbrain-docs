@@ -1,6 +1,56 @@
 ---
-title: "Tree Vs Matrix"
-description: ""
+title: "Planning Tree vs Delivery Map"
+description: "Two views of the same data — strategy and execution on the same canvas."
 ---
 
-<Info>This page is coming soon.</Info>
+ProductBrain's core insight: a single dataset rendered two ways, with animated transitions between them.
+
+## Planning Tree (Strategy)
+
+The tree shows **why** you're building something.
+
+```
+Goal: Help shoppers save money
+  └── Need: Compare prices across stores
+       └── Approach: Barcode scan with live lookup
+            └── Job: Price comparison shows for scanned barcode
+```
+
+Every node traces back to a business outcome. When someone asks "why are we building this?", the tree has the answer — follow any job upward through its approach, need, and goal.
+
+**Use the tree when you need to:**
+- Map out what you're betting on
+- Check that work connects to business value
+- Explore approaches for a need
+- See the full strategic landscape
+
+## Delivery Map (Execution)
+
+The matrix shows **what** you're shipping and **when**.
+
+| | Barcode Scan | Manual Entry | AI Prediction |
+|---|---|---|---|
+| **MVP** | Price shows for scan | Entry form works | — |
+| **Phase 2** | Multi-store comparison | Favorites list | Photo prediction |
+
+Columns are **approaches** (your bets). Rows are **iterations** (your delivery slices). Cells are **jobs** (your proof).
+
+**Use the matrix when you need to:**
+- Plan what ships in the next iteration
+- See the balance of work across approaches
+- Check if an iteration is overloaded
+- Track progress on delivery
+
+## The bridge: Approaches
+
+Approaches are the node type that lives in both worlds. In the tree, an approach is a strategic bet hanging from a need. In the matrix, it's a column header with jobs beneath it.
+
+This is why approaches carry both strategic metadata (Kano classification, measure) and delivery metadata (their child jobs carry iterations and status).
+
+## Switching between views
+
+Toggle between views at any time. The data doesn't change — only the layout. Goals and needs are visible in the tree but not the matrix. Jobs are visible in both. Approaches are the column headers in the matrix and branch points in the tree.
+
+## Tasks and the Misc column
+
+Tasks (standalone items outside the hierarchy) appear in a **Misc column** in the Delivery Map. They're visible alongside your structured work but clearly separated — a reminder that not everything fits the tree, and that's fine.

@@ -1,6 +1,63 @@
 ---
 title: "Jobs"
-description: ""
+description: "Verifiable checkpoints — observable proof that an approach is working."
 ---
 
-<Info>This page is coming soon.</Info>
+Jobs are **not tasks.** They are acceptance criteria — observable proof that a bet is being delivered.
+
+<Warning>
+If you're used to Jira, Linear, or kanban boards: forget that model here. There is no backlog → doing → QA → done pipeline. A job is either proven or it isn't.
+</Warning>
+
+## What makes a good job?
+
+A job label describes **what you'd see** if the approach is working. The description says **where to verify it**. Implementation detail goes in the notes field.
+
+| | Good | Bad |
+|---|---|---|
+| **Label** | "Price comparison shows for scanned barcode" | "Add API call to fetch prices" |
+| **Label** | "Upload progress bar reaches 100% for 500MB file" | "Implement chunked upload" |
+| **Label** | "Share link shows read-only tree" | "Create share endpoint" |
+
+The good labels are observable results. The bad labels are implementation steps — those belong in the **notes** field, where builder agents read them.
+
+## Three fields, three audiences
+
+- **Label** = what you can observe (strategist checks this)
+- **Description** = where to verify it — UI, devtools, API response
+- **Notes** = how to build it — implementation detail for coding agents
+
+## Maturity
+
+The quality bar for this job, set at planning time:
+
+| Maturity | Meaning |
+|----------|---------|
+| **MVP** | It works, it's testable, rough edges acceptable. The approach can be validated. |
+| **Releasable** | Polished enough to stay. Not embarrassed when a stranger uses it. |
+
+Maturity is not completion status. Use `status: "done"` for that.
+
+## Status
+
+A job is either done or not done. There are no intermediate states.
+
+- `done` — the checkpoint has been verified
+- Absent — work is not complete
+
+## Granularity
+
+- **Each job should be verifiable in under a minute.** If you can't confirm it quickly, it's too big — split it.
+- **Don't create jobs until the approach is actively being worked.** The approach captures the bet. Jobs are the checkpoints when you're ready to execute.
+- **The approach is sometimes the job.** For simple approaches, don't decompose at all. Only create jobs when there's genuine complexity worth tracking separately.
+
+## Execution discipline
+
+When working through jobs — whether you or an AI agent:
+
+1. Do the work for this checkpoint
+2. Verify it passes (check what the description says to check)
+3. Mark it done
+4. Move to the next job
+
+Never batch multiple checkpoints. Each job is a gate. If you skip verification, you compound errors.
