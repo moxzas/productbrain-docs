@@ -9,7 +9,8 @@
   },
   "logo": {
     "light": "/logo/brain-logo-light.png",
-    "dark": "/logo/brain-logo-dark.png"
+    "dark": "/logo/brain-logo-dark.png",
+    "href": "https://productbrain.com"
   },
   "favicon": "/favicon.png",
   "appearance": {
