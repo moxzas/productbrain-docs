@@ -85,6 +85,8 @@ Full details: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) �
 
 ## For LLM Agents
 
+This API is designed as a **session contract for LLM agents**. Your agent reads the documentation, operates the tree, and the session ends. There are no client-side dependencies to maintain — no SDK to update, no webhooks to rewire, no version pinning. Changes to the API are reflected in the documentation immediately. Your agent picks them up on the next session.
+
 The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the canonical reference for any AI agent operating on ProductBrain. It covers the data model, hierarchy rules, field validation, placement workflow, and worked examples for generating a brain from a codebase or artifact.
 
 Give your agent this URL and your API key — it has everything it needs to get started.
