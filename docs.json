@@ -16,6 +16,11 @@
   "appearance": {
     "default": "light"
   },
+  "navbar": {
+    "links": [
+      { "label": "Blog", "href": "https://blog.productbrain.com" }
+    ]
+  },
   "navigation": {
     "tabs": [
       {
