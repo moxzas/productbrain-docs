@@ -91,6 +91,18 @@ The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the ca
 
 Give your agent this URL and your API key — it has everything it needs to get started.
 
+## Your Data Is Yours
+
+You can download your entire project as JSON at any time — every goal, need, approach, job, task, and phase. No export restrictions, no premium-only data access, no lock-in. The API that your agents use to read and write the tree is the same API you use to export everything.
+
+```bash
+# Download your full project
+curl -s "https://productbrain.com/api/nodes?projectId=my-project" \
+  -H "Authorization: Bearer pb_..." > my-project-backup.json
+```
+
+This is a commitment, not a feature. We believe a product should compete on the value it creates, not the cost of leaving. If ProductBrain stops being useful, your data leaves with you in one command.
+
 ## Pricing
 
 API access is included on the **Builder** ($39/mo) and **Team** ($99/mo) plans. Free and Strategist plans use AI features through the app UI. [Sign up at app.productbrain.com](https://app.productbrain.com).
