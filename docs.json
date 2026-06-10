@@ -18,7 +18,10 @@
   },
   "navbar": {
     "links": [
-      { "label": "Blog", "href": "https://blog.productbrain.com" }
+      {
+        "label": "Blog",
+        "href": "https://blog.productbrain.com"
+      }
     ]
   },
   "navigation": {
@@ -128,5 +131,11 @@
   },
   "footerSocials": {
     "github": "https://github.com/moxzas/productbrain"
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_mZ7hjiPKB7EE4Vw4DFoY3yFh4EenFKqkKPyjjUxNTzNp",
+      "apiHost": "https://eu.i.posthog.com"
+    }
   }
 }
