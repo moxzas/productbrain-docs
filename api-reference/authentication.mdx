@@ -7,7 +7,7 @@ All API requests require a Bearer token in the `Authorization` header.
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
-  https://productbrain.com/api/nodes?projectId=your-project
+  https://productbrain.com/api/v1/nodes?projectId=your-project
 ```
 
 ## API Keys
@@ -42,7 +42,7 @@ Attempting to access a project you don't own returns:
 ## Finding your Project ID
 
 ```bash
-curl -s https://productbrain.com/api/projects \
+curl -s https://productbrain.com/api/v1/projects \
   -H "Authorization: Bearer pb_your_api_key"
 ```
 

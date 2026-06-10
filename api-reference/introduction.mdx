@@ -8,7 +8,7 @@ The ProductBrain API lets LLM agents and scripts read, search, and modify your p
 ## Base URL
 
 ```
-https://productbrain.com/api
+https://productbrain.com/api/v1
 ```
 
 ## Authentication
@@ -17,7 +17,7 @@ All requests require a Bearer token — a per-user API key generated from the ap
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
-  https://productbrain.com/api/nodes?projectId=your-project
+  https://productbrain.com/api/v1/nodes?projectId=your-project
 ```
 
 Keys start with `pb_`, are scoped to your projects, and can be generated from **Settings → API Keys**. See [Authentication](/api-reference/authentication) for details.
@@ -27,21 +27,21 @@ Keys start with `pb_`, are scoped to your projects, and can be generated from **
 ### Search nodes by meaning
 
 ```bash
-GET /api/search?projectId=my-project&q=onboarding+flow&limit=3
+GET /api/v1/search?projectId=my-project&q=onboarding+flow&limit=3
 # → { results: [{ node: { id, type, data }, similarity: 0.85, ancestors: [...] }] }
 ```
 
 ### List nodes (with filters)
 
 ```bash
-GET /api/nodes?projectId=my-project&type=job&iteration=MVP
+GET /api/v1/nodes?projectId=my-project&type=job&iteration=MVP
 # → { nodes: [{ id, type, parentId, data }], _meta: { currentIteration, nodeCounts } }
 ```
 
 ### Create a node
 
 ```bash
-POST /api/mutate
+POST /api/v1/mutate
 { "action": "add", "projectId": "my-project",
   "node": { "type": "job", "parentId": "approach-1",
     "data": { "label": "Upload progress reaches 100%", "iteration": "MVP" } } }
@@ -51,7 +51,7 @@ POST /api/mutate
 ### Update a node
 
 ```bash
-POST /api/mutate
+POST /api/v1/mutate
 { "action": "update", "projectId": "my-project",
   "nodeId": "job-42", "data": { "status": "done" } }
 ```
@@ -59,14 +59,14 @@ POST /api/mutate
 ### Get current iteration
 
 ```bash
-GET /api/iterations?projectId=my-project&current=true
+GET /api/v1/iterations?projectId=my-project&current=true
 # → { iteration: { name: "MVP", status: "active" } }
 ```
 
 ### Navigate the tree
 
 ```bash
-GET /api/tree?projectId=my-project&nodeId=approach-1&direction=context
+GET /api/v1/tree?projectId=my-project&nodeId=approach-1&direction=context
 # → { ancestors: [...], siblings: [...], children: [...] }
 ```
 
@@ -76,10 +76,10 @@ Full details: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) �
 
 <CardGroup cols={2}>
   <Card title="Search first" icon="magnifying-glass" href="/api-reference/search">
-    Use `/api/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — search uses vector embeddings and returns ranked results with ancestor paths.
+    Use `/api/v1/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — search uses vector embeddings and returns ranked results with ancestor paths.
   </Card>
   <Card title="One write endpoint" icon="bolt" href="/api-reference/mutations">
-    All writes go through `/api/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, or `batch`.
+    All writes go through `/api/v1/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, or `batch`.
   </Card>
 </CardGroup>
 
@@ -91,13 +91,26 @@ The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the ca
 
 Give your agent this URL and your API key — it has everything it needs to get started.
 
+## Versioning & Stability
+
+The API is versioned in the URL path — `https://productbrain.com/api/v1` is the current version. The commitment:
+
+- **We will not break your integration without warning.** Breaking changes (removed or renamed fields, endpoints, or actions; tightened validation; changed error shapes) only ship in a new version (`/api/v2/...`).
+- **The previous version keeps working for at least 6 months** after a new version ships.
+- **Breaking changes are announced in the [changelog](/changelog/2026-06-11) at least 30 days** before the new version goes live.
+- **Additive changes** (new endpoints, new optional fields, new actions) ship on the current version without notice — write your integration to tolerate unknown fields.
+
+Older unversioned paths (`/api/nodes`, ...) keep working indefinitely and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. If your client sees those headers, switch the base URL to `/api/v1` — nothing else changes.
+
+This contract is enforced mechanically: a frozen contract test suite runs in CI against every release candidate, and a breaking change blocks the deploy.
+
 ## Your Data Is Yours
 
 You can download your entire project as JSON at any time — every goal, need, approach, job, task, and phase. No export restrictions, no premium-only data access, no lock-in. The API that your agents use to read and write the tree is the same API you use to export everything.
 
 ```bash
 # Download your full project
-curl -s "https://productbrain.com/api/nodes?projectId=my-project" \
+curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project" \
   -H "Authorization: Bearer pb_..." > my-project-backup.json
 ```
 
