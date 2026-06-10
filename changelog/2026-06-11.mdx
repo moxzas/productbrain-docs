@@ -1,0 +1,16 @@
+---
+title: "June 11, 2026"
+description: "API versioning and a stability commitment for builders."
+---
+
+## Highlights
+
+### API v1 and a deprecation policy
+
+The API now lives at `https://productbrain.com/api/v1`. Nothing about the endpoints changed — same auth, same shapes, same behavior — but the version in the path is a commitment: breaking changes only ship in a new version, the previous version keeps working for at least 6 months after that, and breaking changes are announced here at least 30 days before they go live. Additive changes (new fields, new endpoints) ship without a version bump.
+
+The old unversioned paths keep working indefinitely. They now return a `Deprecation: true` header and a `Link` header pointing at the `/api/v1` successor — switch your base URL when convenient, nothing else changes.
+
+The commitment is enforced mechanically, not by good intentions: a frozen contract test suite pins every documented v1 behavior and runs against every release candidate. A change that would break the published contract cannot reach production.
+
+See [Versioning & Stability](/api-reference/introduction#versioning-and-stability) for the full policy.

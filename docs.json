@@ -118,6 +118,7 @@
           {
             "group": "Releases",
             "pages": [
+              "changelog/2026-06-11",
               "changelog/2026-06-10",
               "changelog/2026-06-05",
               "changelog/2026-06-03",

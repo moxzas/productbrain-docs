@@ -6,7 +6,7 @@ description: "List and filter nodes in a project."
 ## List Nodes
 
 ```
-GET /api/nodes?projectId={projectId}
+GET /api/v1/nodes?projectId={projectId}
 ```
 
 Returns all nodes in a project, ordered by creation date.
@@ -23,15 +23,15 @@ Returns all nodes in a project, ordered by creation date.
 
 ```bash
 # All nodes
-curl -s "https://productbrain.com/api/nodes?projectId=my-project" \
+curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project" \
   -H "Authorization: Bearer pb_..."
 
 # Goals only
-curl -s "https://productbrain.com/api/nodes?projectId=my-project&type=goal" \
+curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project&type=goal" \
   -H "Authorization: Bearer pb_..."
 
 # Jobs in a specific iteration
-curl -s "https://productbrain.com/api/nodes?projectId=my-project&type=job&iteration=MVP" \
+curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project&type=job&iteration=MVP" \
   -H "Authorization: Bearer pb_..."
 ```
 

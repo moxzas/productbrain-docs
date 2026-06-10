@@ -13,7 +13,7 @@ The modal gives you everything your agent needs in one block:
 
 ```
 Documentation: https://productbrain.com/docs/llm-guide.md
-Base URL: https://productbrain.com/api
+Base URL: https://productbrain.com/api/v1
 API Key: pb_your_key_here
 Project ID: your-project-id
 ```
@@ -27,14 +27,14 @@ Paste the snippet into your Claude Code session, Cursor config, or any LLM agent
 Read the documentation at https://productbrain.com/docs/llm-guide.md
 then use the API to understand what I'm building and what to work on next.
 
-Base URL: https://productbrain.com/api
+Base URL: https://productbrain.com/api/v1
 API Key: pb_your_key_here
 Project ID: your-project-id
 ```
 
 ## 4. Agent reads the tree
 
-The agent calls `GET /api/nodes?projectId=...` to see your full planning tree, and `GET /api/iterations?projectId=...&current=true` to find the active iteration. It knows what to build and what proof to produce.
+The agent calls `GET /api/v1/nodes?projectId=...` to see your full planning tree, and `GET /api/v1/iterations?projectId=...&current=true` to find the active iteration. It knows what to build and what proof to produce.
 
 ## 5. Agent writes back
 

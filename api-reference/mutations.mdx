@@ -6,7 +6,7 @@ description: "Create, update, and delete nodes."
 All writes go through a single endpoint. The `action` field determines the operation.
 
 ```
-POST /api/mutate
+POST /api/v1/mutate
 ```
 
 ## Add a Node
@@ -14,7 +14,7 @@ POST /api/mutate
 Creates a new node with an auto-generated ID.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -65,7 +65,7 @@ curl -X POST "https://productbrain.com/api/mutate" \
 PATCH semantics — only include fields you want to change. Existing fields are preserved.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,7 +83,7 @@ To mark a job as not done, set `status` to `null`.
 Hard delete — permanent, no undo. An audit trail is kept in the changelog.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -98,7 +98,7 @@ curl -X POST "https://productbrain.com/api/mutate" \
 Multiple operations in a single request. All-or-nothing — if any mutation fails validation, the entire batch is rejected.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{

@@ -6,7 +6,7 @@ description: "Find nodes by meaning using semantic search."
 ## Semantic Search
 
 ```
-GET /api/search?projectId={projectId}&q={query}
+GET /api/v1/search?projectId={projectId}&q={query}
 ```
 
 Finds nodes by meaning, not exact text match. Every node has a vector embedding — search matches by semantic similarity and returns ranked results with ancestor paths.
@@ -23,7 +23,7 @@ Finds nodes by meaning, not exact text match. Every node has a vector embedding 
 ### Example
 
 ```bash
-curl -s "https://productbrain.com/api/search?projectId=my-project&q=reduce+churn+through+onboarding&limit=5" \
+curl -s "https://productbrain.com/api/v1/search?projectId=my-project&q=reduce+churn+through+onboarding&limit=5" \
   -H "Authorization: Bearer pb_..."
 ```
 

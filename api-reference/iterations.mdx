@@ -8,7 +8,7 @@ Iterations are thematic delivery slices — bundles of work that ship together. 
 ## List Iterations
 
 ```
-GET /api/iterations?projectId={projectId}
+GET /api/v1/iterations?projectId={projectId}
 ```
 
 ### Parameters
@@ -22,7 +22,7 @@ GET /api/iterations?projectId={projectId}
 ### Get all iterations
 
 ```bash
-curl -s "https://productbrain.com/api/iterations?projectId=my-project" \
+curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project" \
   -H "Authorization: Bearer pb_..."
 ```
 
@@ -50,7 +50,7 @@ curl -s "https://productbrain.com/api/iterations?projectId=my-project" \
 The current iteration is the first active, non-system iteration by sort order. Use this when you need to know what's being worked on now.
 
 ```bash
-curl -s "https://productbrain.com/api/iterations?projectId=my-project&current=true" \
+curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project&current=true" \
   -H "Authorization: Bearer pb_..."
 ```
 
@@ -79,7 +79,7 @@ curl -s "https://productbrain.com/api/iterations?projectId=my-project&current=tr
 ## Create an Iteration
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -94,7 +94,7 @@ curl -X POST "https://productbrain.com/api/mutate" \
 PATCH semantics. Use this to rename, mark done, or add git tags.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -112,7 +112,7 @@ Marking an iteration as `done` automatically sets `completedAt`. Done iterations
 System iterations (e.g. "Later") cannot be deleted.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -127,7 +127,7 @@ curl -X POST "https://productbrain.com/api/mutate" \
 Pass the full ordered list of iteration names.
 
 ```bash
-curl -X POST "https://productbrain.com/api/mutate" \
+curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
   -H "Content-Type: application/json" \
   -d '{
