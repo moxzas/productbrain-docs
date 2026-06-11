@@ -1,0 +1,59 @@
+---
+title: "Linear Integration"
+description: "Hand PB jobs to Linear, get delivered signals back — two Make scenarios, no code."
+---
+
+ProductBrain sits above your delivery tracker. The integration is a **signal channel at the job level** — not a sync:
+
+- A new ProductBrain **Job** creates a Linear parent issue (the work handoff).
+- That issue reaching **Done** marks the job **`delivered`** — dev work complete, proof condition not yet verified. The `done` state stays reserved for a human (or agent) confirming the proof in the deployed product.
+
+Nothing else crosses the seam. Goals, needs, approaches, and phases stay in ProductBrain; tickets, sprints, and cycles stay in Linear.
+
+## What you need
+
+- ProductBrain **Builder** or **Team** plan (API access) and an API key (Settings → API Keys)
+- A [Make.com](https://make.com) account — free tier is enough
+- A Linear personal API key (Settings → Security & access)
+
+## Setup
+
+<Steps>
+  <Step title="Import the blueprints">
+    Download both blueprints from the repo: [`pb-to-linear`](https://github.com/moxzas/productbrain/blob/main/integrations/make/pb-to-linear.blueprint.json) and [`linear-to-pb`](https://github.com/moxzas/productbrain/blob/main/integrations/make/linear-to-pb.blueprint.json). In Make: *Create a new scenario → ⋯ → Import Blueprint*.
+  </Step>
+  <Step title="Create the webhooks">
+    In each imported scenario, open the first module and create a new custom webhook. Copy both URLs.
+  </Step>
+  <Step title="Fill the placeholders">
+    Scenario A's HTTP module: your Linear API key and team ID. Scenario B's HTTP module: your ProductBrain API key.
+  </Step>
+  <Step title="Point ProductBrain at Make">
+    ```bash
+    curl -X POST "https://productbrain.com/api/v1/webhooks" \
+      -H "Authorization: Bearer $PB_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"projectId": "YOUR_PROJECT", "url": "<scenario A hook URL>", "events": ["node.added"]}'
+    ```
+  </Step>
+  <Step title="Point Linear at Make">
+    Linear → Settings → API → Webhooks → new webhook with Scenario B's URL, resource type *Issues*.
+  </Step>
+  <Step title="Turn both scenarios on">
+    Create a job in ProductBrain — a Linear issue appears. Move it to Done — the job shows `delivered`.
+  </Step>
+</Steps>
+
+## How the linkage works
+
+The Linear issue description carries a marker line:
+
+```
+PB: job-12 project: my-project · do not edit this line
+```
+
+Scenario B parses it to find the right job. Don't edit or delete that line.
+
+## Why `delivered`, not `done`?
+
+A closed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition* — something observable in the deployed product. The integration records the claim (`delivered`); verifying the proof and marking `done` stays with you or your agent. That distinction is the point of the system.
