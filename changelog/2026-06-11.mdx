@@ -1,16 +1,28 @@
 ---
 title: "June 11, 2026"
-description: "API versioning and a stability commitment for builders."
+description: "API versioning, webhooks, delivered status, four tracker integrations."
 ---
 
 ## Highlights
 
-### API v1 and a deprecation policy
+### API v1 and a stability commitment
 
-The API now lives at `https://productbrain.com/api/v1`. Nothing about the endpoints changed — same auth, same shapes, same behavior — but the version in the path is a commitment: breaking changes only ship in a new version, the previous version keeps working for at least 6 months after that, and breaking changes are announced here at least 30 days before they go live. Additive changes (new fields, new endpoints) ship without a version bump.
+The API now lives at `/api/v1`. Same endpoints, same auth, same shapes — the version in the path is a commitment. Breaking changes only ship in a new version, the previous version keeps working for at least 6 months, and changes are announced 30 days in advance. Old unversioned paths continue working with a deprecation header.
 
-The old unversioned paths keep working indefinitely. They now return a `Deprecation: true` header and a `Link` header pointing at the `/api/v1` successor — switch your base URL when convenient, nothing else changes.
+### Outbound webhooks
 
-The commitment is enforced mechanically, not by good intentions: a frozen contract test suite pins every documented v1 behavior and runs against every release candidate. A change that would break the published contract cannot reach production.
+Real-time signed event delivery for nodes and phases. Register a URL, choose your events, receive payloads as things change. HMAC-SHA256 signatures for verification. Connects ProductBrain to Make.com, Zapier, n8n, or any workflow tool that accepts webhooks.
 
-See [Versioning & Stability](/api-reference/introduction#versioning-and-stability) for the full policy.
+### Delivered status — the tracker handoff
+
+Jobs now have a three-step lifecycle: in progress → delivered → done. When your delivery tracker signals that the linked work is complete, the job moves to `delivered`. Moving to `done` means someone has verified the proof condition is actually met. A closed ticket is a claim. A done job is proof.
+
+### Four tracker integrations
+
+Linear, GitHub, Jira, and Azure DevOps — via importable Make.com blueprints, ~30-minute setup each. Jobs flow out as trackable containers, completion signals flow back as `delivered`. Step-by-step guides for each platform.
+
+## Other improvements
+
+- Deprecation headers on old API paths with Link to successor
+- Webhook health monitoring (last delivery time and status)
+- GitHub integration verified end-to-end against real GitHub API
