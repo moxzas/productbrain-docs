@@ -1,0 +1,44 @@
+---
+title: "Jira Integration"
+description: "Hand PB jobs to Jira, get delivered signals back — two Make scenarios, no code."
+---
+
+A new ProductBrain **Job** creates a Jira issue (Story by default — change the issuetype in the blueprint); that container reaching **a done status category** marks the job **`delivered`** — dev work complete, proof condition not yet verified. `done` stays reserved for verified proof. Nothing else crosses the seam.
+
+## Setup
+
+<Steps>
+  <Step title="Import the blueprints">
+    From the repo: [`pb-to-jira`](https://github.com/moxzas/productbrain/blob/main/integrations/make/pb-to-jira.blueprint.json) and [`jira-to-pb`](https://github.com/moxzas/productbrain/blob/main/integrations/make/jira-to-pb.blueprint.json). In Make: *Create a new scenario → ⋯ → Import Blueprint*.
+  </Step>
+  <Step title="Create the webhooks">
+    In each scenario, open the first module and create a new custom webhook. Copy both URLs.
+  </Step>
+  <Step title="Fill the placeholders">
+    Scenario A (PB → Jira): your site URL (`YOUR_SITE.atlassian.net`), project key, and a Basic auth value — `base64(your-email:api-token)` (create the token at id.atlassian.com → Security). Scenario B: your ProductBrain API key (Settings → API Keys).
+  </Step>
+  <Step title="Point ProductBrain at Make">
+    ```bash
+    curl -X POST "https://productbrain.com/api/v1/webhooks" \
+      -H "Authorization: Bearer $PB_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"projectId": "YOUR_PROJECT", "url": "<scenario A hook URL>", "events": ["node.added"]}'
+    ```
+  </Step>
+  <Step title="Point Jira at Make">
+    Jira → Settings → System → Webhooks → new webhook with Scenario B's URL, event *Issue: updated*. Optionally scope with JQL: `labels in ("pb-managed")`.
+  </Step>
+  <Step title="Turn both scenarios on">
+    Create a job in ProductBrain — Jira issue appears. Complete it — the job shows `delivered`.
+  </Step>
+</Steps>
+
+## How the linkage works
+
+The issue carries two labels: `pb-job-12` and `pbp-my-project`. Scenario B parses them — Jira Cloud webhooks deliver descriptions in ADF format, so labels are the reliable carrier. Don't remove the `pb-` labels.
+
+## Why `delivered`, not `done`?
+
+A completed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition* — something observable in the deployed product. The integration records the claim (`delivered`); verifying the proof and marking `done` stays with you or your agent.
+
+<Note>Verified with live Make scenarios against payloads in Jira's documented webhook shape; the first run on your Jira site is the final validation.</Note>
