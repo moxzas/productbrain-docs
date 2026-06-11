@@ -98,7 +98,8 @@
               "api-reference/nodes",
               "api-reference/search",
               "api-reference/mutations",
-              "api-reference/iterations"
+              "api-reference/iterations",
+              "api-reference/webhooks"
             ]
           }
         ]

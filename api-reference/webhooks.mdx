@@ -1,0 +1,123 @@
+---
+title: "Webhooks"
+description: "Receive real-time events when nodes and phases change."
+---
+
+Webhooks deliver signed event payloads to your URL when nodes or phases are created, updated, or deleted. Use them to connect ProductBrain to Make.com, Zapier, n8n, or any workflow tool.
+
+## Register a webhook
+
+```
+POST /api/v1/webhooks
+```
+
+```json
+{
+  "projectId": "my-project",
+  "url": "https://your-endpoint.example.com/webhook",
+  "events": ["node.added", "node.updated"]
+}
+```
+
+- `url` must be HTTPS and publicly routable
+- `events` is optional — omit to subscribe to all six event types
+- Maximum 10 webhooks per project
+
+**Response:**
+
+```json
+{
+  "id": "wh_abc123",
+  "url": "https://your-endpoint.example.com/webhook",
+  "events": ["node.added", "node.updated"],
+  "secret": "whsec_..."
+}
+```
+
+The `secret` is returned once at registration. Store it — you'll need it to verify signatures.
+
+## Event types
+
+| Event | Fires when |
+|---|---|
+| `node.added` | A node is created |
+| `node.updated` | A node's data changes (label, status, phase, etc.) |
+| `node.deleted` | A node is deleted |
+| `iteration.added` | A phase is created |
+| `iteration.updated` | A phase is renamed or status changes |
+| `iteration.deleted` | A phase is deleted |
+
+## Payload
+
+```json
+{
+  "event": "node.updated",
+  "project_id": "my-project",
+  "timestamp": "2026-06-11T10:30:00Z",
+  "node": {
+    "id": "job-42",
+    "type": "job",
+    "parentId": "approach-1",
+    "data": {
+      "label": "Price comparison shows for scanned barcode",
+      "status": "delivered",
+      "iteration": "MVP"
+    }
+  }
+}
+```
+
+For iteration events, the payload includes `iteration` instead of `node`. Rename events include `previous_name`.
+
+## Headers
+
+| Header | Description |
+|---|---|
+| `X-ProductBrain-Event` | Event type (e.g. `node.updated`) |
+| `X-ProductBrain-Delivery` | Unique delivery ID |
+| `X-ProductBrain-Signature` | `sha256=<HMAC-SHA256 hex digest of raw body>` |
+
+## Verifying signatures
+
+```javascript
+const crypto = require('crypto');
+
+function verify(body, signature, secret) {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+```
+
+## Delivery semantics
+
+- **At-most-once** — no retries. If your endpoint is down, the event is lost.
+- **5-second timeout** — respond within 5 seconds or the delivery is marked failed.
+- **Health monitoring** — `GET /api/v1/webhooks` returns `lastDeliveryAt` and `lastStatus` per webhook.
+- **Re-sync after downtime** — read `GET /api/v1/nodes` to catch up on anything missed.
+
+## List webhooks
+
+```
+GET /api/v1/webhooks?projectId=my-project
+```
+
+## Delete a webhook
+
+```
+DELETE /api/v1/webhooks?projectId=my-project&webhookId=wh_abc123
+```
+
+## Integration guides
+
+Webhooks power the delivery tracker integrations via Make.com:
+
+- [Linear integration](/guides/linear-integration)
+- [GitHub integration](/guides/github-integration)
+- [Jira integration](/guides/jira-integration)
+- [Azure DevOps integration](/guides/azure-devops-integration)

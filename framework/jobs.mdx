@@ -40,10 +40,15 @@ Maturity is not completion status. Use `status: "done"` for that.
 
 ## Status
 
-A job is either done or not done. There are no intermediate states.
+A job has three states:
 
-- `done` — the checkpoint has been verified
-- Absent — work is not complete
+| Status | Meaning | Set by |
+|---|---|---|
+| Absent | Work in progress | Default |
+| `delivered` | Dev work complete, proof condition not yet verified | Tracker integrations (automatic) or manual |
+| `done` | Proof verified in the deployed product | Human or agent (never automatic) |
+
+A closed ticket is a claim, not proof. When your delivery tracker signals that the linked work is complete, the job moves to `delivered` — the team says it's built. Moving to `done` means someone has verified the proof condition is actually met in the deployed product. That last step stays with you.
 
 ## Granularity
 
