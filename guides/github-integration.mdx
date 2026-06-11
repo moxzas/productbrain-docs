@@ -1,0 +1,50 @@
+---
+title: "GitHub Integration"
+description: "Hand PB jobs to GitHub, get delivered signals back — two Make scenarios, no code."
+---
+
+A new ProductBrain **Job** creates a GitHub Milestone (dev issues live under it); that container reaching **closed** marks the job **`delivered`** — dev work complete, proof condition not yet verified. `done` stays reserved for verified proof. Nothing else crosses the seam.
+
+## Setup
+
+<Steps>
+  <Step title="Import the blueprints">
+    From the repo: [`pb-to-github`](https://github.com/moxzas/productbrain/blob/main/integrations/make/pb-to-github.blueprint.json) and [`github-to-pb`](https://github.com/moxzas/productbrain/blob/main/integrations/make/github-to-pb.blueprint.json). In Make: *Create a new scenario → ⋯ → Import Blueprint*.
+  </Step>
+  <Step title="Create the webhooks">
+    In each scenario, open the first module and create a new custom webhook. Copy both URLs.
+  </Step>
+  <Step title="Fill the placeholders">
+    Scenario A (PB → GitHub): a fine-grained personal access token (repo: issues read/write) and your `owner/repo` in the URL. Scenario B: your ProductBrain API key (Settings → API Keys).
+  </Step>
+  <Step title="Point ProductBrain at Make">
+    ```bash
+    curl -X POST "https://productbrain.com/api/v1/webhooks" \
+      -H "Authorization: Bearer $PB_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"projectId": "YOUR_PROJECT", "url": "<scenario A hook URL>", "events": ["node.added"]}'
+    ```
+  </Step>
+  <Step title="Point GitHub at Make">
+    Repo → Settings → Webhooks → new webhook with Scenario B's URL, *Let me select individual events* → **Milestones**, content type `application/json`.
+  </Step>
+  <Step title="Turn both scenarios on">
+    Create a job in ProductBrain — GitHub Milestone appears. Complete it — the job shows `delivered`.
+  </Step>
+</Steps>
+
+## How the linkage works
+
+The milestone description carries a marker line:
+
+```
+PB: job-12 project: my-project · do not edit this line
+```
+
+Scenario B parses it to find the right job. Don't edit that line.
+
+## Why `delivered`, not `done`?
+
+A completed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition* — something observable in the deployed product. The integration records the claim (`delivered`); verifying the proof and marking `done` stays with you or your agent.
+
+<Note>This integration was verified fully end-to-end against real GitHub milestones and webhooks.</Note>

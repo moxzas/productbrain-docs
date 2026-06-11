@@ -51,7 +51,10 @@
             "group": "Builder Quickstart",
             "pages": [
               "guides/builder-quickstart",
-              "guides/linear-integration"
+              "guides/linear-integration",
+              "guides/github-integration",
+              "guides/jira-integration",
+              "guides/azure-devops-integration"
             ]
           }
         ]

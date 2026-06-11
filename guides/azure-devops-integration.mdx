@@ -1,0 +1,50 @@
+---
+title: "Azure DevOps Integration"
+description: "Hand PB jobs to Azure DevOps, get delivered signals back — two Make scenarios, no code."
+---
+
+A new ProductBrain **Job** creates a Feature work item (PBIs/stories live under it); that container reaching **Done or Closed** marks the job **`delivered`** — dev work complete, proof condition not yet verified. `done` stays reserved for verified proof. Nothing else crosses the seam.
+
+## Setup
+
+<Steps>
+  <Step title="Import the blueprints">
+    From the repo: [`pb-to-azure-devops`](https://github.com/moxzas/productbrain/blob/main/integrations/make/pb-to-azure-devops.blueprint.json) and [`azure-devops-to-pb`](https://github.com/moxzas/productbrain/blob/main/integrations/make/azure-devops-to-pb.blueprint.json). In Make: *Create a new scenario → ⋯ → Import Blueprint*.
+  </Step>
+  <Step title="Create the webhooks">
+    In each scenario, open the first module and create a new custom webhook. Copy both URLs.
+  </Step>
+  <Step title="Fill the placeholders">
+    Scenario A (PB → Azure DevOps): your org/project in the URL and a Basic auth value — `base64(:personal-access-token)` (note the leading colon; PAT needs Work Items read/write). Scenario B: your ProductBrain API key (Settings → API Keys).
+  </Step>
+  <Step title="Point ProductBrain at Make">
+    ```bash
+    curl -X POST "https://productbrain.com/api/v1/webhooks" \
+      -H "Authorization: Bearer $PB_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"projectId": "YOUR_PROJECT", "url": "<scenario A hook URL>", "events": ["node.added"]}'
+    ```
+  </Step>
+  <Step title="Point Azure DevOps at Make">
+    Project Settings → Service hooks → Create subscription → Web Hooks → *Work item updated*, URL = Scenario B's hook.
+  </Step>
+  <Step title="Turn both scenarios on">
+    Create a job in ProductBrain — Feature work item appears. Complete it — the job shows `delivered`.
+  </Step>
+</Steps>
+
+## How the linkage works
+
+The Feature's description carries a marker line:
+
+```
+PB: job-12 project: my-project · do not edit this line
+```
+
+Scenario B parses it. Don't edit that line.
+
+## Why `delivered`, not `done`?
+
+A completed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition* — something observable in the deployed product. The integration records the claim (`delivered`); verifying the proof and marking `done` stays with you or your agent.
+
+<Note>Verified with live Make scenarios against payloads in Azure DevOps' documented service-hook shape; the first run on your org is the final validation.</Note>
