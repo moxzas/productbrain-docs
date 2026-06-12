@@ -1,0 +1,25 @@
+---
+title: "June 12, 2026"
+description: "Team accounts, hosted workflow API, agent project creation."
+---
+
+## Highlights
+
+### Team accounts
+
+Invite team members to your project. Humans and AI agents share the same workspace — agent seats are first-class members, not second-class API keys. Concurrent edits are conflict-safe at the field level. Pooled AI credits bill to the project owner. Available on the Team plan ($99/mo, up to 5 seats). Larger team? [enterprise@productbrain.com](mailto:enterprise@productbrain.com).
+
+### Hosted Workflow API
+
+AI agents can now follow guided multi-step workflows through `/api/v1/workflow`. Create nodes, curate tasks, assign phases — the state machine enforces consistency while the agent provides judgment. Same flows strategists use in the UI, headless for builders. Documented in the [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md).
+
+### Agents can create projects
+
+The `addProject` mutation lets an agent bootstrap a brain from scratch — create the project, seed the tree, populate via API. Zero UI interaction required to go from nothing to a working planning tree.
+
+## Other improvements
+
+- Signup now happens on our domain — no redirect to external auth pages
+- Concurrent edits resolved at field level, not document level
+- Later phase auto-created for every new project
+- Explainer uses a friendlier example ("Grow Bob's Café weekend revenue")
