@@ -123,6 +123,7 @@
           {
             "group": "Releases",
             "pages": [
+              "changelog/2026-06-15",
               "changelog/2026-06-12",
               "changelog/2026-06-11",
               "changelog/2026-06-10",
