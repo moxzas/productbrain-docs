@@ -72,6 +72,28 @@
         ]
       },
       {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/nodes",
+              "api-reference/search",
+              "api-reference/mutations",
+              "api-reference/iterations",
+              "api-reference/webhooks"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Framework",
         "groups": [
           {
@@ -90,28 +112,6 @@
               "framework/tree-vs-matrix",
               "framework/iterations",
               "framework/kano"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication"
-            ]
-          },
-          {
-            "group": "Endpoints",
-            "pages": [
-              "api-reference/nodes",
-              "api-reference/search",
-              "api-reference/mutations",
-              "api-reference/iterations",
-              "api-reference/webhooks"
             ]
           }
         ]
