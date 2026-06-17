@@ -47,6 +47,8 @@ The `secret` is returned once at registration. Store it — you'll need it to ve
 | `iteration.updated` | A phase is renamed or status changes |
 | `iteration.deleted` | A phase is deleted |
 
+<Note>Phases are named `iteration` in the API. The event names and the payload field are the stable API identifier and won't change; the product UI calls the same thing a **phase**.</Note>
+
 ## Payload
 
 ```json
