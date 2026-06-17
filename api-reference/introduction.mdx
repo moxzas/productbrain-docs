@@ -5,6 +5,10 @@ description: "Read, search, and mutate your ProductBrain project programmaticall
 
 The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It's the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
 
+<Note>
+**Agents and LLMs: read the [LLM Guide](https://productbrain.com/docs/llm-guide.md) first.** It is the complete, canonical contract — every endpoint, field, validation rule, and worked example. This page is a human-friendly summary and **does not list the full surface**: view control, the hosted Workflow API, share-link lifecycle, tree navigation, and the in-band response-coaching layer all live in the guide. Give your agent that one URL and your API key and it has everything.
+</Note>
+
 ## Base URL
 
 ```
@@ -70,7 +74,7 @@ GET /api/v1/tree?projectId=my-project&nodeId=approach-1&direction=context
 # → { ancestors: [...], siblings: [...], children: [...] }
 ```
 
-Full details: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) · [Mutations](/api-reference/mutations) · [Iterations](/api-reference/iterations)
+Full details for these: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) · [Mutations](/api-reference/mutations) · [Iterations](/api-reference/iterations). For the rest of the surface — view control, the Workflow API, share-link lifecycle, and the `_meta` coaching layer — the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete reference.
 
 ## Key Principles
 

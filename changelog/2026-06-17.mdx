@@ -1,17 +1,13 @@
 ---
 title: "June 17, 2026"
-description: "Your task inbox sorts itself, a deeper API for builders, and a plain-language privacy page."
+description: "A deeper builder API, email and privacy handled, and a more reliable task inbox."
 ---
 
 ## Highlights
 
-### Your task inbox sorts itself
-
-Capture a task and ProductBrain files it for you. A quick thought becomes a memo, a small action becomes a do-it, and anything urgent gets flagged. Less triage, more capture.
-
 ### A deeper API for builders
 
-If you drive ProductBrain from the terminal or your own agent, the v1 API is far more capable. It coaches the calling agent in-band with next-step hints and wrong-endpoint redirects, tells you what each call actually did, and gained full lifecycle control over share links and webhooks.
+If you drive ProductBrain from the terminal or your own agent, the v1 API is now a complete operating surface: read and mutate the tree, drive the live view, run the planning methodology on your own LLM, and manage share links and webhooks — with responses that coach the calling agent in-band (next-step hints, wrong-endpoint redirects, and a read-back of what each call did). The full contract lives in one place: the [LLM Guide](https://productbrain.com/docs/llm-guide.md).
 
 ### Email and privacy, handled
 
@@ -19,6 +15,7 @@ One-click unsubscribe on every marketing email, an updated Privacy Policy and su
 
 ## Other improvements
 
+- The task inbox got more reliable — one consistent classifier across the app and the API, and tasks you add by chat now arrive pre-sorted instead of defaulting to a plain memo
 - Revoke or expire a public share link through the API
 - Webhooks can now be updated and rotated in place, no delete-and-recreate
 - Search and navigation responses describe themselves, so an agent always knows what it's looking at
