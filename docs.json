@@ -118,11 +118,23 @@
         ]
       },
       {
+        "tab": "Trust",
+        "groups": [
+          {
+            "group": "Privacy",
+            "pages": [
+              "trust/your-data-privacy"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Changelog",
         "groups": [
           {
             "group": "Releases",
             "pages": [
+              "changelog/2026-06-17",
               "changelog/2026-06-15",
               "changelog/2026-06-12",
               "changelog/2026-06-11",

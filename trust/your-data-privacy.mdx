@@ -1,0 +1,74 @@
+---
+title: "Your data & privacy"
+description: "In plain terms: what happens to your data, and what doesn't. We never train AI on your planning content — on any account."
+---
+
+<Info>**Last reviewed: 17 June 2026.** Every claim on this page is checked against what the product's code and infrastructure actually do.</Info>
+
+ProductBrain holds something sensitive: your product strategy. Goals, bets, what you're building and why. That's your intellectual property, and we treat it that way. This page explains, in plain terms, exactly what happens to your data — and, just as importantly, what doesn't.
+
+## The one promise that matters
+
+**We never use your planning content to train AI models — ours or anyone else's.** This isn't a tier you pay for; it's the baseline for every account, free and paid.
+
+We don't have our own models, and we don't mine your trees to build any. When your content is processed by AI, it's processed to give *you* a result and nothing else.
+
+## How we can promise that
+
+Our AI runs on **Google's Gemini API through a paid Google Cloud project**. Under Google's Customer Data Processing Addendum (CDPA) and paid-tier terms, Google does not use prompts or responses sent through the paid service to train or improve its models. We're on the paid tier specifically so that guarantee holds — the free Gemini tier does train on inputs, and we don't use it.
+
+Google may hold inputs briefly for abuse monitoring and to meet legal obligations, and for nothing else. (We'll be straight about the limit of this: we have *not* signed up for Google's zero-retention enterprise programme. For where we are today — a product serving a broad market — the no-training guarantee is the part that matters, and that one is solid. If you're an enterprise with a hard zero-retention requirement, talk to us.)
+
+## What actually touches AI, and when
+
+Three things send your content to Gemini:
+
+- **AI-assisted drafting** — when you ask the AI to help draft or review part of your tree. This is **opt-in**: if you don't use it, your content isn't sent for it.
+- **Search** — to make search and "related items" work, the text of nodes and your search queries are turned into numerical embeddings. This happens as part of normal use.
+- **Task classification** — when you add a task, its title and description are sent so the inbox can sort it. Also part of normal use.
+
+All three run under the same paid Google Cloud project and the same no-training terms.
+
+## What we log — and what we don't
+
+- **We never log the *content* of AI interactions on paid accounts.** Full stop.
+- On **free accounts**, we do log AI interactions (the prompts, responses, and context) so we can improve the product and our prompts. We're telling you that plainly because it's true and you should know it.
+- On **every account**, we record the *number of tokens* an AI request used — never the content — purely to meter your AI credits.
+
+## Where your data lives
+
+Your account and planning data is stored with **Supabase, in the United States** (AWS, `us-west-2` / Oregon), encrypted at rest and in transit. For a product used worldwide, US-region storage on a major provider is a deliberate, standard choice. We're an Australian business; if data residency is a requirement for you, tell us.
+
+## Who else touches your data
+
+We keep a small, named set of subprocessors and publish the full list — purpose, data shared, processing region — at **[productbrain.com/subprocessors.html](https://productbrain.com/subprocessors.html)**. The short version: Supabase (database), Google (AI), Clerk (login), Vercel (hosting), Resend (email), Paddle (payments, as Merchant of Record), and PostHog (analytics).
+
+On analytics specifically: we use **PostHog (EU-hosted)** and session replay is on — but **every text field and input is masked**, so your brain content is never captured in a recording. Replay shows us how the interface is used, not what you wrote.
+
+## Sharing is something you choose
+
+You can create a public share link to a read-only view of a project. Be deliberate with it: **anyone with the link can open it without logging in** — the link is the key. A shared view includes the items you choose to share (titles, descriptions, structure) and your iteration names; free-text notes are excluded. The app doesn't have a one-click revoke button yet, so if you need a link disabled, email us and we'll do it. Builders using our API can already revoke a link or set it to expire; an in-app control is coming.
+
+## Your controls
+
+- **Export** your whole brain as JSON, any time.
+- **Delete** your account and data — removed within 30 days of the request.
+- **Unsubscribe** from any marketing email in one click; you'll still get essential account email (security, billing).
+- **Ask us anything** about your data — access, correction, deletion — at `privacy@productbrain.com`. We respond within 30 days.
+
+## Where we stand — and what we don't claim
+
+We'd rather tell you the truth than oversell. So, plainly:
+
+- **We don't claim SOC 2.** We don't have it. It's an expensive, enterprise-grade certification, and we'll pursue it when our customers need it — not before, and we won't imply we have it in the meantime.
+- **We describe our access controls honestly.** Access to customer data is limited and least-privilege. We have *not* yet implemented a formal two-person, no-standing-access ("break-glass") model — that's a planned hardening step, and we won't represent it as in effect until it is.
+- **Our legal documents are a careful baseline,** not enterprise-lawyered paper. They're honest and accurate about how the product actually works. We'll bring in counsel before we sign enterprise agreements.
+
+None of this is hand-waving. We've gone through the product line by line to make sure what we say here matches what the code actually does. As we grow, this page gets stronger, not vaguer.
+
+## The formal documents
+
+- **Privacy Policy** — the complete legal version: [productbrain.com/privacy.html](https://productbrain.com/privacy.html)
+- **Subprocessors** — the full, versioned list: [productbrain.com/subprocessors.html](https://productbrain.com/subprocessors.html)
+- **Data Processing Addendum (DPA)** — available on request: `privacy@productbrain.com`
+- **Questions / requests** — `privacy@productbrain.com`
