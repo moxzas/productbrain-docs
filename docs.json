@@ -121,8 +121,9 @@
         "tab": "Trust",
         "groups": [
           {
-            "group": "Privacy",
+            "group": "Trust",
             "pages": [
+              "trust/about",
               "trust/your-data-privacy"
             ]
           }
