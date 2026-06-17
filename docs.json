@@ -60,6 +60,18 @@
         ]
       },
       {
+        "tab": "Trust",
+        "groups": [
+          {
+            "group": "Trust",
+            "pages": [
+              "trust/about",
+              "trust/your-data-privacy"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Framework",
         "groups": [
           {
@@ -113,18 +125,6 @@
               "use-cases/solo-founder",
               "use-cases/builder-with-agents",
               "use-cases/pm-strategist"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Trust",
-        "groups": [
-          {
-            "group": "Trust",
-            "pages": [
-              "trust/about",
-              "trust/your-data-privacy"
             ]
           }
         ]
