@@ -1,9 +1,32 @@
 ---
 title: "June 18, 2026"
-description: "Webhooks you can trust to arrive, and an honest word on rate limits."
+description: "ProductBrain gets an MCP server — plus idempotent retries, node restore, and webhooks you can trust."
 ---
 
 ## Highlights
+
+### ProductBrain has an MCP server
+
+Connect ProductBrain to **Claude Desktop, Claude Code, or Cursor** over MCP — your agent gets tools for search, read, mutate, the planning workflow, and the live view, with no glue code. It's a thin transport over the same versioned v1 REST API, so the contract you depend on stays the frozen API, not the protocol — you can drop to raw HTTP or bring your own LLM any time.
+
+```jsonc
+// Claude Desktop — claude_desktop_config.json
+{ "mcpServers": { "productbrain": {
+  "command": "npx", "args": ["-y", "@productbrain-com/mcp"],
+  "env": { "PRODUCTBRAIN_API_KEY": "pb_your_key", "PRODUCTBRAIN_PROJECT_ID": "your-project-id" }
+}}}
+```
+
+Full setup for each client: [MCP server](/api-reference/mcp).
+
+### Safer mutations: idempotent retries and node restore
+
+Two changes make the mutation API safe to hand to an autonomous agent:
+
+- **Idempotency keys.** Send an `Idempotency-Key` header on any `/mutate` call, and a retry after a timeout returns the original result (`Idempotent-Replayed: true`) instead of creating a duplicate. An agent that retries never double-creates.
+- **Node restore.** Deleted a node by mistake? `{"action":"restore","nodeId":"…"}` brings it back from the changelog with its original id and data. Your agent can undo its own mistakes — and you keep a recovery path even though deletes stay permanent in the table.
+
+Details: [Mutations](/api-reference/mutations).
 
 ### Webhooks now deliver at least once
 
