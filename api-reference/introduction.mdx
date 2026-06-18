@@ -105,6 +105,17 @@ The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the ca
 
 Give your agent this URL and your API key — it has everything it needs to get started.
 
+## Rate limits
+
+The API is rate-limited **per IP address** — currently around 100 requests per minute. Exceed it and you get an HTTP `429`; back off and retry after about a minute. It's a coarse, infrastructure-level guard against abuse, not a fine-grained per-key quota.
+
+Two honest caveats:
+
+- **The limit is per IP, not per API key (for now).** If you drive the API from several clients behind one IP — an office network, a shared CI runner, a serverless platform that reuses egress IPs — they share one budget and can throttle each other. A per-key limit is on the roadmap; until it ships, give a heavy workload its own IP.
+- **Prefer one batch over many calls.** `POST /api/v1/mutate` takes a batch of mutations in a single request — it's faster and stays well under the limit.
+
+Rate limits are about request volume, not cost: the API surface is credit-free.
+
 ## Versioning & Stability
 
 The API is versioned in the URL path — `https://productbrain.com/api/v1` is the current version. The commitment:
