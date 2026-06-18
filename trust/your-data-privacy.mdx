@@ -3,7 +3,7 @@ title: "Your data & privacy"
 description: "In plain terms: what happens to your data, and what doesn't. We never train AI on your planning content — on any account."
 ---
 
-<Info>**Last reviewed: 17 June 2026.** Every claim on this page is checked against what the product's code and infrastructure actually do.</Info>
+<Info>**Last reviewed: 18 June 2026.** Every claim on this page is checked against what the product's code and infrastructure actually do.</Info>
 
 ProductBrain holds something sensitive: your product strategy. Goals, bets, what you're building and why. That's your intellectual property, and we treat it that way. This page explains, in plain terms, exactly what happens to your data — and, just as importantly, what doesn't.
 
@@ -38,6 +38,11 @@ All three run under the same paid Google Cloud project and the same no-training 
 ## Where your data lives
 
 Your account and planning data is stored with **Supabase, in the United States** (AWS, `us-west-2` / Oregon), encrypted at rest and in transit. For a product used worldwide, US-region storage on a major provider is a deliberate, standard choice. We're an Australian business; if data residency is a requirement for you, tell us.
+
+## How it's isolated and backed up
+
+- **Your data is fenced off from every other account.** ProductBrain uses Postgres row-level security — your data is scoped to your account at the database layer, and the API re-checks ownership on every request for it. A request for another account's data is rejected outright (a `403`), not merely hidden from the view.
+- **It's backed up.** The database runs on Supabase's managed **Pro** infrastructure with automated daily backups, so your plan survives an operational failure — separate from the JSON export you can pull yourself at any time.
 
 ## Who else touches your data
 
