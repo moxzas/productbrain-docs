@@ -42,7 +42,7 @@ Your account and planning data is stored with **Supabase, in the United States**
 ## How it's isolated and backed up
 
 - **Your data is fenced off from every other account.** ProductBrain uses Postgres row-level security — your data is scoped to your account at the database layer, and the API re-checks ownership on every request for it. A request for another account's data is rejected outright (a `403`), not merely hidden from the view.
-- **It's backed up.** The database runs on Supabase's managed **Pro** infrastructure with automated daily backups, so your plan survives an operational failure — separate from the JSON export you can pull yourself at any time.
+- **It's backed up.** The database runs on Supabase's managed **Pro** infrastructure with automated daily backups retained for 7 days, so your plan survives an operational failure — separate from the JSON export you can pull yourself at any time.
 
 ## Who else touches your data
 
