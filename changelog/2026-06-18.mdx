@@ -1,0 +1,21 @@
+---
+title: "June 18, 2026"
+description: "Webhooks you can trust to arrive, and an honest word on rate limits."
+---
+
+## Highlights
+
+### Webhooks now deliver at least once
+
+Outbound webhooks are durable now. Every event is persisted *before* we attempt it, so a receiver that's briefly down no longer misses anything. If your endpoint doesn't answer (a non-2xx status, or no response within 5 seconds), we retry with exponential backoff — up to 6 attempts over roughly 30 minutes — then mark the delivery failed so you can reconcile.
+
+Two things to know if you consume webhooks:
+
+- **Make your receiver idempotent.** At-least-once means the same event can arrive more than once. Dedup on the `X-ProductBrain-Delivery` header, which is now **stable across every retry** of an event — previously it changed per attempt.
+- **Secret rotation is safe mid-flight.** Each attempt is re-signed with your webhook's current secret, so rotating it never breaks an in-flight retry.
+
+Full details: [Webhooks](/api-reference/webhooks).
+
+## Other improvements
+
+- **Rate limits, documented honestly.** The API's per-IP rate limit (~100 requests/minute, `429` when exceeded) is now written down — including the honest caveat that it's per-IP rather than per-key for now. See [API Overview](/api-reference/introduction).

@@ -76,7 +76,7 @@ For iteration events, the payload includes `iteration` instead of `node`. Rename
 | Header | Description |
 |---|---|
 | `X-ProductBrain-Event` | Event type (e.g. `node.updated`) |
-| `X-ProductBrain-Delivery` | Unique delivery ID |
+| `X-ProductBrain-Delivery` | Delivery ID — **stable across all retries** of one event. Dedup on it to stay idempotent. |
 | `X-ProductBrain-Signature` | `sha256=<HMAC-SHA256 hex digest of raw body>` |
 
 ## Verifying signatures
@@ -98,10 +98,14 @@ function verify(body, signature, secret) {
 
 ## Delivery semantics
 
-- **At-most-once** — no retries. If your endpoint is down, the event is lost.
-- **5-second timeout** — respond within 5 seconds or the delivery is marked failed.
-- **Health monitoring** — `GET /api/v1/webhooks` returns `lastDeliveryAt` and `lastStatus` per webhook.
-- **Re-sync after downtime** — read `GET /api/v1/nodes` to catch up on anything missed.
+**At-least-once.** Every event is persisted durably *before* the first attempt, so a receiver that's briefly down never loses it. We attempt delivery immediately; if your endpoint returns a non-2xx status or doesn't respond within 5 seconds, we retry with exponential backoff (~2, 4, 8, 16, 32 minutes) up to **6 attempts total**, then mark the delivery `failed`.
+
+Because it's at-least-once, **your receiver must be idempotent** — the same event can arrive more than once (e.g. you process it but acknowledge past the 5-second window, so we retry). **Dedup on `X-ProductBrain-Delivery`**, which is stable across every retry of one event.
+
+Each attempt re-signs the body with your webhook's *current* secret, so rotating the secret never breaks an in-flight retry.
+
+- **Health monitoring** — `GET /api/v1/webhooks` returns the last delivery time and HTTP status per webhook; poll it to monitor health.
+- **Reconcile failures** — a delivery that exhausts all 6 attempts is marked `failed` and not retried further; catch up by reading `GET /api/v1/nodes`.
 
 ## List webhooks
 
