@@ -80,7 +80,7 @@ To mark a job as not done, set `status` to `null`.
 
 ## Delete a Node
 
-Hard delete — permanent, no undo. An audit trail is kept in the changelog.
+Hard delete — the node is removed from the table, but the full node is kept in the changelog, so a delete is **recoverable** with `restore` (below).
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -92,6 +92,25 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "nodeId": "job-99"
   }'
 ```
+
+## Restore a Node
+
+Recover a hard-deleted node from the changelog. It returns with its original id, type, parentId, and data. Identify it by `nodeId` (restores the most recent deletion of that node) or by a specific `changelogId`.
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "restore",
+    "projectId": "my-project",
+    "nodeId": "job-99"
+  }'
+```
+
+- `409` if a node with that id already exists (nothing to restore); `404` if no deletion is on record.
+- If the node's original parent was also deleted, it comes back **orphaned** (dangling `parentId`) — restore the parent too, or reparent. The response `_meta._tip` flags this.
+- Restore does not cascade — it brings back the single node, not its former children.
 
 ## Batch Mutations
 
@@ -121,6 +140,25 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     ]
   }'
 ```
+
+## Idempotency
+
+Make any `mutate` call (single or batch) safe to retry by sending an `Idempotency-Key` header — an opaque per-operation string (a UUID is ideal):
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Idempotency-Key: 7b1f2c84-...-your-uuid" \
+  -H "Content-Type: application/json" \
+  -d '{ "action": "add", "projectId": "my-project", "node": { "type": "goal", "data": { "label": "..." } } }'
+```
+
+- **Replay** — a second request with the same key *and the same body* returns the original response unchanged (with an `Idempotent-Replayed: true` header) instead of applying again. An agent that retries after a timeout never double-creates.
+- **Conflict** — the same key with a *different* body returns `409` (you reused a key for a new operation; generate a fresh one).
+- **In flight** — if the first request is still running, a retry returns `409` ("in progress — retry shortly").
+- **Window** — keys are remembered for 24 hours, then expire. Scope is per user.
+
+Without an `Idempotency-Key`, retries are not deduplicated — re-read with `GET /api/v1/nodes` or `search` and re-submit only what's missing.
 
 ## Validation
 
