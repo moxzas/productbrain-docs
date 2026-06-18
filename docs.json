@@ -88,7 +88,8 @@
               "api-reference/search",
               "api-reference/mutations",
               "api-reference/iterations",
-              "api-reference/webhooks"
+              "api-reference/webhooks",
+              "api-reference/mcp"
             ]
           }
         ]
