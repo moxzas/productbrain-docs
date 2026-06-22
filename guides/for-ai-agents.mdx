@@ -88,6 +88,46 @@ GET /api/v1/tree?projectId=my-project&nodeId=approach-12&direction=context
 
 From there you can `mutate` with confidence — you know the parent, the siblings, and the chain up to the goal.
 
+## A full loop — read, ship, prove it
+
+This is the part most integrations skip: writing the proof back. A ProductBrain job's label is an **observable result, not an implementation step** — it *is* the acceptance test. So "done" means *verified*, never just *claimed*. Here is the whole loop with real calls.
+
+```bash
+# 1. What iteration am I in, and what is the next job in it?
+GET /api/v1/iterations?projectId=my-project&current=true
+# → { "iteration": { "name": "MVP", "status": "active" } }
+
+GET /api/v1/nodes?projectId=my-project&type=job&iteration=MVP
+# → { "nodes": [ { "id": "job-42",
+#       "data": { "label": "Upload progress bar reaches 100% on a 2GB file", "maturity": "mvp" } } ] }
+#   (no `status` field yet = not started / in progress)
+```
+
+The label is your acceptance test. Build until "the progress bar reaches 100% on a 2GB file" is observably true.
+
+```bash
+# 2. Dev done, not yet verified in the deployed product → status: "delivered".
+#    PATCH semantics: send only the field that changes. Record HOW in notes (auditable history).
+#    The idempotencyKey makes a retry safe.
+POST /api/v1/mutate
+{ "action": "update", "projectId": "my-project", "nodeId": "job-42",
+  "data": {
+    "status": "delivered",
+    "notes": "Chunked upload implemented; bar verified to 100% on a 2GB file; upload-progress.spec passing."
+  },
+  "idempotencyKey": "job-42-delivered-2026-06-22" }
+```
+
+```bash
+# 3. Once it is live and you have checked the label's condition holds in production → status: "done".
+#    Never promote delivered → done without actually verifying.
+POST /api/v1/mutate
+{ "action": "update", "projectId": "my-project", "nodeId": "job-42",
+  "data": { "status": "done" } }
+```
+
+That is the whole reason to work from the tree: the next agent — or the human — opens the plan and sees not just *done*, but the condition that had to hold and how it was met, in history. Nothing asserted, everything checkable. Discover new work mid-build? Add it as a job under the same approach and note it on `job-42`, so the plan stays true to what actually happened.
+
 ## What else you can drive
 
 Beyond reading and mutating the plan, the same key lets you run the planning methodology on your own LLM (`/workflow`, zero AI credits), drive and read the live canvas the human is looking at (`/view-command`, `/view-state`), and manage share links and webhooks. All of it is in the [LLM Guide](https://productbrain.com/docs/llm-guide.md).
