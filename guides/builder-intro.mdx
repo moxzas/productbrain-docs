@@ -29,7 +29,7 @@ Each job describes an observable result your agent should produce — not an imp
 
 ### Context survives compaction
 
-LLM agents lose context. Sessions end, conversations compact, and the agent forgets what it was doing. The tree is the fix — it's external memory that persists regardless of what happens to the agent's context window. After a compaction, the agent reads the tree and knows exactly where it left off: what's done, what's next, what the current iteration is. No re-briefing. No lost progress.
+LLM agents lose context. Sessions end, conversations compact, and the agent forgets what it was doing. The tree is the fix — it's external memory that persists regardless of what happens to the agent's context window. After a compaction, the agent re-orients from the tree — what's done, what's next, the current iteration — instead of being re-briefed from scratch. The context lives in the plan, not in the agent's window, so it survives the reset: you keep the tree current, and the agent reads it before it acts.
 
 ### One API, full access
 
@@ -48,7 +48,7 @@ Read the tree, search by meaning, create nodes, update status, manage iterations
 
 <CardGroup cols={2}>
   <Card title="Builder Quickstart" icon="rocket" href="/guides/builder-quickstart">
-    Get your API key and connect your first agent in 2 minutes.
+    Get your API key and connect your first agent in a couple of minutes.
   </Card>
   <Card title="API Reference" icon="square-terminal" href="/api-reference/introduction">
     Full endpoint documentation for agent integration.

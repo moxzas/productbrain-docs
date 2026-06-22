@@ -19,7 +19,7 @@ The plan the person you build with shapes here is *theirs*, and it leaves whenev
 
 - **Full JSON in one call.** `GET /api/v1/nodes` returns the entire project — every goal, need, approach, job, task, and phase. No export tier, no premium gate, no restrictions.
 - **Operate and leave over open MCP.** The [Model Context Protocol](/api-reference/mcp) server is a thin shim over the same versioned REST API. It's the open standard, not a proprietary SDK, so the plan is portable to any compatible client.
-- **An OKF bundle.** `GET /api/v1/export-okf` emits the brain as an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog) bundle — typed, cross-linked, agent-readable markdown.
+- **An OKF bundle, if you want it.** `GET /api/v1/export-okf` emits a vendor-neutral typed-markdown bundle (Google's early [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog) v0.1). The JSON route above is the universal one everything reads; OKF is a bonus for OKF-aware tooling.
 
 And there is no clock: ProductBrain is free to start and de-time-bound, with no trial countdown forcing a decision. The same API you read the plan with is the one they'd leave with — the strategy they shape here stays theirs, exportable any time, with no lock-in. Nothing to lose by trying it: if it ever stops earning its place, they walk away with the full structured plan and are better off than they started.
 
