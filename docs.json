@@ -10,7 +10,7 @@
   "logo": {
     "light": "/logo/brain-logo-light.png",
     "dark": "/logo/brain-logo-dark.png",
-    "href": "https://productbrain.com"
+    "href": "https://docs.productbrain.com"
   },
   "favicon": "/favicon.png",
   "appearance": {
@@ -22,7 +22,12 @@
         "label": "Blog",
         "href": "https://blog.productbrain.com"
       }
-    ]
+    ],
+    "primary": {
+      "type": "button",
+      "label": "productbrain.com",
+      "href": "https://productbrain.com"
+    }
   },
   "navigation": {
     "tabs": [
