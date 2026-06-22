@@ -1,0 +1,68 @@
+---
+title: "For AI Agents"
+description: "You're an AI agent operating ProductBrain on a builder's behalf. Start operating in one read."
+---
+
+You're an AI agent — Claude Code, Cursor, or similar — operating ProductBrain on behalf of the person you're building with. This page gets you working in a single read. It is not the full contract; it points you at it and gives you the few rules that stop you tripping.
+
+<Note>
+**Your canonical reference is the [LLM Guide](https://productbrain.com/docs/llm-guide.md)** — one machine-readable URL covering every endpoint, field, validation rule, the placement workflow, and worked examples (generate a plan from a codebase, place a node, run the methodology). Give yourself that URL plus your operator's API key and you have everything. The rest of this page is the short version.
+</Note>
+
+## Connect
+
+Two ways in. Both hit the same versioned REST API.
+
+<CodeGroup>
+
+```bash MCP (recommended)
+# Claude Code — one command, then the tools are available in-session
+claude mcp add productbrain \
+  -e PRODUCTBRAIN_API_KEY=pb_your_key \
+  -e PRODUCTBRAIN_PROJECT_ID=your-project-id \
+  -- npx -y @productbrain-com/mcp
+```
+
+```bash Raw HTTP
+# Every call is a Bearer request to the v1 base URL
+curl -H "Authorization: Bearer pb_your_key" \
+  "https://productbrain.com/api/v1/search?projectId=your-project-id&q=onboarding"
+```
+
+</CodeGroup>
+
+The MCP server is a thin shim over the same `/api/v1` endpoints — use it if your client speaks MCP, drop to raw HTTP otherwise. Nothing is lost either way; responses carry the same in-band `_meta` coaching.
+
+## The rules that matter
+
+These are the few things that will trip you if you skip them. The [LLM Guide](https://productbrain.com/docs/llm-guide.md) has the rest.
+
+- **Search first, always.** For any lookup, `GET /api/v1/search?q=...` — it returns semantic matches ranked by similarity, with ancestor paths for placement context. Do **not** list all nodes and scan by label; that fails on label collisions and doesn't scale.
+- **One write endpoint.** All mutations go through `POST /api/v1/mutate`. The `action` field picks the operation: `add`, `update`, `delete`, `restore`, `batch`. Prefer one `batch` over many calls.
+- **Make retries safe.** Pass an `idempotencyKey` on writes so a retried call doesn't double-apply.
+- **Respect the hierarchy.** Goal → Need → Approach → Job (plus standalone Tasks). Fields are type-specific. The guide has the full validation contract; the API also tells you in-band via `_meta` when you get it wrong.
+
+## A first move
+
+Read before you write. Search for where the work belongs, then pull its context:
+
+```bash
+# 1. Find the relevant node by meaning
+GET /api/v1/search?projectId=my-project&q=checkout+abandonment&limit=3
+# → { results: [{ node, similarity, ancestors:[...] }] }
+
+# 2. Pull that node in context (ancestors / siblings / children)
+GET /api/v1/tree?projectId=my-project&nodeId=approach-12&direction=context
+```
+
+From there you can `mutate` with confidence — you know the parent, the siblings, and the chain up to the goal.
+
+## What else you can drive
+
+Beyond reading and mutating the plan, the same key lets you run the planning methodology on your own LLM (`/workflow`, zero AI credits), drive and read the live canvas the human is looking at (`/view-command`, `/view-state`), and manage share links and webhooks. All of it is in the [LLM Guide](https://productbrain.com/docs/llm-guide.md).
+
+---
+
+<Card title="Human, not an agent?" icon="user" href="/api-reference/introduction">
+  The [API overview](/api-reference/introduction) is the human tour of this same surface, and [For Builders](/guides/builder-intro) covers why your agent works from a plan in the first place.
+</Card>
