@@ -60,10 +60,10 @@
         ]
       },
       {
-        "tab": "Trust",
+        "tab": "About",
         "groups": [
           {
-            "group": "Trust",
+            "group": "About",
             "pages": [
               "trust/about",
               "trust/your-data-privacy"
