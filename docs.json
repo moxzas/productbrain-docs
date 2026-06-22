@@ -159,6 +159,22 @@
       }
     ]
   },
+  "redirects": [
+    { "source": "/privacy", "destination": "/trust/your-data-privacy" },
+    { "source": "/trust/privacy", "destination": "/trust/your-data-privacy" },
+    { "source": "/data-privacy", "destination": "/trust/your-data-privacy" },
+    { "source": "/trust/data-privacy", "destination": "/trust/your-data-privacy" },
+    { "source": "/security", "destination": "/trust/your-data-privacy" },
+    { "source": "/trust/security", "destination": "/trust/your-data-privacy" },
+    { "source": "/guides/github", "destination": "/guides/github-integration" },
+    { "source": "/integrations/github", "destination": "/guides/github-integration" },
+    { "source": "/guides/linear", "destination": "/guides/linear-integration" },
+    { "source": "/integrations/linear", "destination": "/guides/linear-integration" },
+    { "source": "/guides/jira", "destination": "/guides/jira-integration" },
+    { "source": "/integrations/jira", "destination": "/guides/jira-integration" },
+    { "source": "/guides/azure-devops", "destination": "/guides/azure-devops-integration" },
+    { "source": "/integrations/azure-devops", "destination": "/guides/azure-devops-integration" }
+  ],
   "footerSocials": {
     "github": "https://github.com/moxzas/productbrain"
   },
