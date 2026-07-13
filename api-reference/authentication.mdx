@@ -2,7 +2,6 @@
 title: "Authentication"
 description: "API keys and how to authenticate requests."
 ---
-
 All API requests require a Bearer token in the `Authorization` header.
 
 ```bash
@@ -20,7 +19,7 @@ Go to **Settings → API Keys** in the app. Click **Generate**. You'll get a `pb
 
 ### Key format
 
-Keys start with `pb_` followed by a random string. They are hashed server-side — ProductBrain never stores the raw key. If you lose it, generate a new one.
+Keys start with `pb_` followed by a random string. They are hashed server-side. ProductBrain never stores the raw key. If you lose it, generate a new one.
 
 ### Revoke a key
 

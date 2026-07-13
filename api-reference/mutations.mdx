@@ -2,7 +2,6 @@
 title: "Mutations"
 description: "Create, update, and delete nodes."
 ---
-
 All writes go through a single endpoint. The `action` field determines the operation.
 
 ```
@@ -54,15 +53,15 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 
 | Type | Parent required | Parent type |
 |------|-----------------|-------------|
-| Goal | No | — |
+| Goal | No | None |
 | Need | Yes | Goal |
 | Approach | Yes | Need |
 | Job | Yes | Approach |
-| Task | No | — |
+| Task | No | None |
 
 ## Update a Node
 
-PATCH semantics — only include fields you want to change. Existing fields are preserved.
+PATCH semantics. Only include fields you want to change. Existing fields are preserved.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -80,7 +79,7 @@ To mark a job as not done, set `status` to `null`.
 
 ## Delete a Node
 
-Hard delete — the node is removed from the table, but the full node is kept in the changelog, so a delete is **recoverable** with `restore` (below).
+Hard delete. The node is removed from the table, but the full node is kept in the changelog, so a delete is **recoverable** with `restore` (below).
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -108,13 +107,13 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
   }'
 ```
 
-- `409` if a node with that id already exists (nothing to restore); `404` if no deletion is on record.
-- If the node's original parent was also deleted, it comes back **orphaned** (dangling `parentId`) — restore the parent too, or reparent. The response `_meta._tip` flags this.
-- Restore does not cascade — it brings back the single node, not its former children.
+- `409` if a node with that id already exists (nothing to restore). `404` if no deletion is on record.
+- If the node's original parent was also deleted, it comes back **orphaned** (dangling `parentId`). Restore the parent too, or reparent. The response `_meta._tip` flags this.
+- Restore does not cascade. It brings back the single node, not its former children.
 
 ## Batch Mutations
 
-Multiple operations in a single request. All-or-nothing — if any mutation fails validation, the entire batch is rejected.
+Multiple operations in a single request. All-or-nothing. If any mutation fails validation, the entire batch is rejected.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -143,7 +142,7 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 
 ## Idempotency
 
-Make any `mutate` call (single or batch) safe to retry by sending an `Idempotency-Key` header — an opaque per-operation string (a UUID is ideal):
+Make any `mutate` call (single or batch) safe to retry by sending an `Idempotency-Key` header. An opaque per-operation string (a UUID is ideal):
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -153,12 +152,12 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
   -d '{ "action": "add", "projectId": "my-project", "node": { "type": "goal", "data": { "label": "..." } } }'
 ```
 
-- **Replay** — a second request with the same key *and the same body* returns the original response unchanged (with an `Idempotent-Replayed: true` header) instead of applying again. An agent that retries after a timeout never double-creates.
-- **Conflict** — the same key with a *different* body returns `409` (you reused a key for a new operation; generate a fresh one).
-- **In flight** — if the first request is still running, a retry returns `409` ("in progress — retry shortly").
-- **Window** — keys are remembered for 24 hours, then expire. Scope is per user.
+- **Replay**. A second request with the same key *and the same body* returns the original response unchanged (with an `Idempotent-Replayed: true` header) instead of applying again. An agent that retries after a timeout never double-creates.
+- **Conflict**. The same key with a *different* body returns `409` (you reused a key for a new operation. Generate a fresh one).
+- **In flight**. If the first request is still running, a retry returns `409` ("in progress, retry shortly").
+- **Window**. Keys are remembered for 24 hours, then expire. Scope is per user.
 
-Without an `Idempotency-Key`, retries are not deduplicated — re-read with `GET /api/v1/nodes` or `search` and re-submit only what's missing.
+Without an `Idempotency-Key`, retries are not deduplicated, re-read with `GET /api/v1/nodes` or `search` and re-submit only what's missing.
 
 ## Validation
 
@@ -166,7 +165,7 @@ The API validates all mutations before applying them:
 
 - **Label is required** on all nodes
 - **Parent must exist** and be the correct type (need under goal, approach under need, etc.)
-- **Fields must match node type** — setting `iteration` on a goal or `maturity` on a task is rejected
+- **Fields must match node type**, setting `iteration` on a goal or `maturity` on a task is rejected
 - **Kano values:** `must-have`, `performance`, `delighter`
 - **Size values:** `skateboard`, `vespa`, `car`, `truck`, `antonov`
 - **Maturity values:** `mvp`, `releasable`

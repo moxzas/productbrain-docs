@@ -2,8 +2,7 @@
 title: "Approaches"
 description: "Scoped bets on how to address a need. The bridge between strategy and delivery."
 ---
-
-An approach is a **hypothesis** — a specific bet on how to address a need. It's the most important level in the tree because it bridges strategy and delivery: it's a strategic decision in the Planning Tree and a delivery commitment in the Delivery Map.
+An approach is a **hypothesis**, a specific bet on how to address a need. It's the most important level in the tree because it bridges strategy and delivery: it's a strategic decision in the Planning Tree and a delivery commitment in the Delivery Map.
 
 ## What makes a good approach?
 
@@ -17,14 +16,14 @@ An approach should stand on its own as something that could succeed or fail. If 
 - "Barcode scan with live lookup" (bet: cameras are faster than typing)
 
 **Bad approaches:**
-- "Create database table" — that's an implementation step (a job)
-- "LLM monitors brain" + "Notification UI" + "Encode heuristics" as three separate approaches — these are pieces of one bet. Combine them into "Proactive coaching from canonical sources" with the pieces as jobs.
+- "Create database table". That's an implementation step (a job)
+- "LLM monitors brain" + "Notification UI" + "Encode heuristics" as three separate approaches. These are pieces of one bet. Combine them into "Proactive coaching from canonical sources" with the pieces as jobs.
 
 ## Key fields
 
 ### Measure
 
-Every approach should have a **measure** — how you'll know the bet paid off.
+Every approach should have a **measure**. How you'll know the bet paid off.
 
 - "99.9% upload success rate for files up to 2GB"
 - "Users create 3+ nodes per session via chat"
@@ -32,7 +31,7 @@ Every approach should have a **measure** — how you'll know the bet paid off.
 
 ### Size
 
-Relative weight of the bet — not a time estimate.
+Relative weight of the bet, not a time estimate.
 
 | Size | Feel |
 |------|------|
@@ -40,7 +39,7 @@ Relative weight of the bet — not a time estimate.
 | Vespa | Small but real |
 | Car | Substantial, common investment |
 | Truck | Large, needs coordination |
-| Antonov | Too big — decompose into smaller approaches |
+| Antonov | Too big, decompose into smaller approaches |
 
 ### Lifecycle status
 
@@ -51,16 +50,16 @@ Relative weight of the bet — not a time estimate.
 | **Resolved** | The bet paid off |
 | **Retired** | The bet failed or was superseded |
 
-This is distinct from job completion. An approach with all MVP jobs done is in **validation**, not resolved — it's live and being measured.
+This is distinct from job completion. An approach with all MVP jobs done is in **validation**, not resolved. It's live and being measured.
 
 ## Approaches have seasons, not lifespans
 
-An approach might ship MVP jobs in one iteration, go quiet while other work progresses, then come back for polish based on feedback. In the Delivery Map, the approach only appears as a column when it has jobs in the selected iteration. No active jobs means no column — no noise.
+An approach might ship MVP jobs in one iteration, go quiet while other work progresses, then come back for polish based on feedback. In the Delivery Map, the approach only appears as a column when it has jobs in the selected iteration. No active jobs means no column, no noise.
 
-The anti-pattern is an approach that has jobs in every iteration continuously. That means it was scoped as a project, not a bet — split it.
+The anti-pattern is an approach that has jobs in every iteration continuously. That means it was scoped as a project, not a bet, split it.
 
 ## Common pitfalls
 
 ### Infrastructure without a consumer
 
-An approach that describes infrastructure ("generic API layer", "flexible abstraction") without a feature that uses it in the same iteration is premature. Design for growth — but build for now. The simplest version that unblocks real functionality is the right scope. The abstraction layer can wait until you have a second use case.
+An approach that describes infrastructure ("generic API layer", "flexible abstraction") without a feature that uses it in the same iteration is premature. Design for growth, but build for now. The simplest version that unblocks real functionality is the right scope. The abstraction layer can wait until you have a second use case.

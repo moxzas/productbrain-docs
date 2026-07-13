@@ -2,24 +2,23 @@
 title: "June 11, 2026"
 description: "API versioning, webhooks, delivered status, four tracker integrations."
 ---
-
 ## Highlights
 
 ### API v1 and a stability commitment
 
-The API now lives at `/api/v1`. Same endpoints, same auth, same shapes — the version in the path is a commitment. Breaking changes only ship in a new version, the previous version keeps working for at least 6 months, and changes are announced 30 days in advance. Old unversioned paths continue working with a deprecation header.
+The API now lives at `/api/v1`. Same endpoints, same auth, same shapes. The version in the path is a commitment. Breaking changes only ship in a new version, the previous version keeps working for at least 6 months, and changes are announced 30 days in advance. Old unversioned paths continue working with a deprecation header.
 
 ### Outbound webhooks
 
 Real-time signed event delivery for nodes and phases. Register a URL, choose your events, receive payloads as things change. HMAC-SHA256 signatures for verification. Connects ProductBrain to Make.com, Zapier, n8n, or any workflow tool that accepts webhooks.
 
-### Delivered status — the tracker handoff
+### Delivered status, the tracker handoff
 
 Jobs now have a three-step lifecycle: in progress → delivered → done. When your delivery tracker signals that the linked work is complete, the job moves to `delivered`. Moving to `done` means someone has verified the proof condition is actually met. A closed ticket is a claim. A done job is proof.
 
 ### Four tracker integrations
 
-Linear, GitHub, Jira, and Azure DevOps — via importable Make.com blueprints, ~30-minute setup each. Jobs flow out as trackable containers, completion signals flow back as `delivered`. Step-by-step guides for each platform.
+Linear, GitHub, Jira, and Azure DevOps, via importable Make.com blueprints, ~30-minute setup each. Jobs flow out as trackable containers, completion signals flow back as `delivered`. Step-by-step guides for each platform.
 
 ## Other improvements
 

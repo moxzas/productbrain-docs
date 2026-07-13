@@ -2,10 +2,9 @@
 title: "For Builders"
 description: "A structured planning surface your AI agents can read and write to."
 ---
+You ship with AI agents, Claude Code, Cursor, Copilot Workspace, or similar. You're productive, but you've lost track of the bigger picture. Features land, but you can't answer "why did I build that?" or "what should I build next?"
 
-You ship with AI agents — Claude Code, Cursor, Copilot Workspace, or similar. You're productive, but you've lost track of the bigger picture. Features land, but you can't answer "why did I build that?" or "what should I build next?"
-
-You don't want to slow down to wrestle your workflow into a traditional tool that thinks in sprints, tickets, and estimation ceremonies. You just need to know what you're betting on, what's next, and what proof looks like — without leaving the command line.
+You don't want to slow down to wrestle your workflow into a traditional tool that thinks in sprints, tickets, and estimation ceremonies. You just need to know what you're betting on, what's next, and what proof looks like. Without leaving the command line.
 
 ProductBrain fills the gap right above doing great work: the thinking layer that keeps your bets visible without asking you to change how you build. It sits above your delivery tools, not instead of them. If you use Linear or GitHub Issues, ProductBrain is the strategy layer on top. If you use nothing, it's the only layer you need.
 
@@ -13,23 +12,23 @@ ProductBrain fills the gap right above doing great work: the thinking layer that
 
 ### A control surface for agents
 
-Your AI agent reads the planning tree to understand what to build and why. When it ships something, it writes back — marking jobs done, adding notes, flagging blockers. The tree is the shared state between you and your agents.
+Your AI agent reads the planning tree to understand what to build and why. When it ships something, it writes back, marking jobs done, adding notes, flagging blockers. The tree is the shared state between you and your agents.
 
 ### Structure without ceremony
 
-No standups, no sprint planning, no story points. The tree captures your strategy (goals → needs → approaches) and the Delivery Map shows what's shipping when. Your agent consumes this through the API — it knows what iteration it's working in and what proof of delivery looks like.
+No standups, no sprint planning, no story points. The tree captures your strategy (goals → needs → approaches) and the Delivery Map shows what's shipping when. Your agent consumes this through the API. It knows what iteration it's working in and what proof of delivery looks like.
 
 ### The picture, without the context switch
 
-Living in the terminal doesn't mean flying blind. Your agent reads and writes the tree through the API — but that same tree renders as a visual whenever you want it. Step back and the Planning Tree shows the *shape* of what you're building and why; the Delivery Map lays it out across releases. Seeing which goals are well-served, or what's bundled next, is a glance in the browser — not a context switch into a tool you have to *operate*. You keep the framework and the visuals to stay oriented, without leaving the flow you build in.
+Living in the terminal doesn't mean flying blind. Your agent reads and writes the tree through the API, but that same tree renders as a visual whenever you want it. Step back and the Planning Tree shows the *shape* of what you're building and why. The Delivery Map lays it out across releases. Seeing which goals are well-served, or what's bundled next, is a glance in the browser. Not a context switch into a tool you have to *operate*. You keep the framework and the visuals to stay oriented, without leaving the flow you build in.
 
 ### Jobs are acceptance criteria
 
-Each job describes an observable result your agent should produce — not an implementation step. "Price comparison shows for scanned barcode" tells the agent what to verify. The agent decides how to implement it.
+Each job describes an observable result your agent should produce, not an implementation step. "Price comparison shows for scanned barcode" tells the agent what to verify. The agent decides how to implement it.
 
 ### Context survives compaction
 
-LLM agents lose context. Sessions end, conversations compact, and the agent forgets what it was doing. The tree is the fix — it's external memory that persists regardless of what happens to the agent's context window. After a compaction, the agent re-orients from the tree — what's done, what's next, the current iteration — instead of being re-briefed from scratch. The context lives in the plan, not in the agent's window, so it survives the reset: you keep the tree current, and the agent reads it before it acts.
+LLM agents lose context. Sessions end, conversations compact, and the agent forgets what it was doing. The tree is the fix. It's external memory that persists regardless of what happens to the agent's context window. After a compaction, the agent re-orients from the tree, what's done, what's next, the current iteration, instead of being re-briefed from scratch. The context lives in the plan, not in the agent's window, so it survives the reset: you keep the tree current, and the agent reads it before it acts.
 
 ### One API, full access
 
@@ -37,20 +36,20 @@ Read the tree, search by meaning, create nodes, update status, manage iterations
 
 ## How it fits your workflow
 
-1. **Set up your project** — Map out goals, needs, and approaches (in the UI or via API)
-2. **Get your API key** — One click from Settings, copy the quickstart snippet
-3. **Give it to your agent** — Paste the snippet into your Claude Code session or agent config
-4. **Agent reads the tree** — It knows what to build, what iteration it's in, and what proof to produce
-5. **Agent writes back** — Marks jobs done, adds notes, flags issues
-6. **You review** — Check the Delivery Map to see progress across all your bets
+1. **Set up your project**. Map out goals, needs, and approaches (in the UI or via API)
+2. **Get your API key**. One click from Settings, copy the quickstart snippet
+3. **Give it to your agent**. Paste the snippet into your Claude Code session or agent config
+4. **Agent reads the tree**. It knows what to build, what iteration it's in, and what proof to produce
+5. **Agent writes back**, Marks jobs done, adds notes, flags issues
+6. **You review**. Check the Delivery Map to see progress across all your bets
 
 ## Get Started
 
 <CardGroup cols={2}>
-  <Card title="Builder Quickstart" icon="rocket" href="/guides/builder-quickstart">
-    Get your API key and connect your first agent in a couple of minutes.
-  </Card>
-  <Card title="API Reference" icon="square-terminal" href="/api-reference/introduction">
-    Full endpoint documentation for agent integration.
-  </Card>
+ <Card title="Builder Quickstart" icon="rocket" href="/guides/builder-quickstart">
+ Get your API key and connect your first agent in a couple of minutes.
+ </Card>
+ <Card title="API Reference" icon="square-terminal" href="/api-reference/introduction">
+ Full endpoint documentation for agent integration.
+ </Card>
 </CardGroup>

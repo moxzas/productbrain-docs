@@ -2,11 +2,10 @@
 title: "API Overview"
 description: "Read, search, and mutate your ProductBrain project programmatically."
 ---
-
 The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It's the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
 
 <Note>
-**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, machine-readable contract — every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. This page is the human tour of the same surface.
+**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, machine-readable contract, every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. This page is the human tour of the same surface.
 </Note>
 
 ## Base URL
@@ -17,7 +16,7 @@ https://productbrain.com/api/v1
 
 ## Authentication
 
-All requests require a Bearer token — a per-user API key generated from the app.
+All requests require a Bearer token. A per-user API key generated from the app.
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
@@ -78,60 +77,60 @@ Full details for these: [Nodes](/api-reference/nodes) · [Search](/api-reference
 
 ## The full surface an agent can operate
 
-- **Plan the tree** — read, semantic-search, and mutate (`/nodes`, `/search`, `/mutate`, `/tree`), with batch all-or-nothing writes and re-embedding on change.
-- **Drive the live view** — switch tree/matrix, select a phase, expand, focus, and zoom the canvas in real time (`/view-command`), and read back exactly what the user is looking at (`/view-state`).
-- **Run the methodology** — drive ProductBrain's planning state machine with your *own* LLM, consuming zero AI credits (`/workflow`).
-- **Manage lifecycle** — share links mint / list / revoke / expire (`/share`); webhooks register / update / rotate with HMAC signing (`/webhooks`).
-- **Self-coaching responses** — calls carry a `_meta` block: next-step hints, wrong-endpoint redirects, and a read-back of what each call did.
+- **Plan the tree**, read, semantic-search, and mutate (`/nodes`, `/search`, `/mutate`, `/tree`), with batch all-or-nothing writes and re-embedding on change.
+- **Drive the live view**, switch tree/matrix, select a phase, expand, focus, and zoom the canvas in real time (`/view-command`), and read back exactly what the user is looking at (`/view-state`).
+- **Run the methodology**, drive ProductBrain's planning state machine with your *own* LLM, consuming zero AI credits (`/workflow`).
+- **Manage lifecycle**, share links mint / list / revoke / expire (`/share`). Webhooks register / update / rotate with HMAC signing (`/webhooks`).
+- **Self-coaching responses**, calls carry a `_meta` block: next-step hints, wrong-endpoint redirects, and a read-back of what each call did.
 
-The [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, current reference for all of it — the canonical contract your agent reads.
+The [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, current reference for all of it. The canonical contract your agent reads.
 
 ## Key Principles
 
 <CardGroup cols={2}>
-  <Card title="Search first" icon="magnifying-glass" href="/api-reference/search">
-    Use `/api/v1/search?q=...` to find nodes by meaning. Don't pull all nodes and filter — search uses vector embeddings and returns ranked results with ancestor paths.
-  </Card>
-  <Card title="One write endpoint" icon="bolt" href="/api-reference/mutations">
-    All writes go through `/api/v1/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, `restore`, or `batch`.
-  </Card>
+ <Card title="Search first" icon="magnifying-glass" href="/api-reference/search">
+ Use `/api/v1/search?q=...` to find nodes by meaning. Don't pull all nodes and filter, search uses vector embeddings and returns ranked results with ancestor paths.
+ </Card>
+ <Card title="One write endpoint" icon="bolt" href="/api-reference/mutations">
+ All writes go through `/api/v1/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, `restore`, or `batch`.
+ </Card>
 </CardGroup>
 
 ## For LLM Agents
 
-This API is designed as a **session contract for LLM agents**. Your agent reads the documentation, operates the tree, and the session ends. There are no client-side dependencies to maintain — no SDK to update, no webhooks to rewire, no version pinning. Changes to the API are reflected in the documentation immediately. Your agent picks them up on the next session.
+This API is designed as a **session contract for LLM agents**. Your agent reads the documentation, operates the tree, and the session ends. There are no client-side dependencies to maintain, no SDK to update, no webhooks to rewire, no version pinning. Changes to the API are reflected in the documentation immediately. Your agent picks them up on the next session.
 
 The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the canonical reference for any AI agent operating on ProductBrain. It covers the data model, hierarchy rules, field validation, placement workflow, and worked examples for generating a brain from a codebase or artifact.
 
-Give your agent this URL and your API key — it has everything it needs to get started.
+Give your agent this URL and your API key. It has everything it needs to get started.
 
 ## Rate limits
 
-The API is rate-limited **per IP address** — currently around 100 requests per minute. Exceed it and you get an HTTP `429`; back off and retry after about a minute. It's a coarse, infrastructure-level guard against abuse, not a fine-grained per-key quota.
+The API is rate-limited **per IP address**, currently around 100 requests per minute. Exceed it and you get an HTTP `429`. Back off and retry after about a minute. It's a coarse, infrastructure-level guard against abuse, not a fine-grained per-key quota.
 
 Two honest caveats:
 
-- **The limit is per IP, not per API key (for now).** If you drive the API from several clients behind one IP — an office network, a shared CI runner, a serverless platform that reuses egress IPs — they share one budget and can throttle each other. A per-key limit is on the roadmap; until it ships, give a heavy workload its own IP.
-- **Prefer one batch over many calls.** `POST /api/v1/mutate` takes a batch of mutations in a single request — it's faster and stays well under the limit.
+- **The limit is per IP, not per API key (for now).** If you drive the API from several clients behind one IP, an office network, a shared CI runner, a serverless platform that reuses egress IPs. They share one budget and can throttle each other. A per-key limit is on the roadmap. Until it ships, give a heavy workload its own IP.
+- **Prefer one batch over many calls.** `POST /api/v1/mutate` takes a batch of mutations in a single request. It's faster and stays well under the limit.
 
 Rate limits are about request volume, not cost: the API surface is credit-free.
 
 ## Versioning & Stability
 
-The API is versioned in the URL path — `https://productbrain.com/api/v1` is the current version. The commitment:
+The API is versioned in the URL path. `https://productbrain.com/api/v1` is the current version. The commitment:
 
-- **We will not break your integration without warning.** Breaking changes (removed or renamed fields, endpoints, or actions; tightened validation; changed error shapes) only ship in a new version (`/api/v2/...`).
+- **We will not break your integration without warning.** Breaking changes (removed or renamed fields, endpoints, or actions. Tightened validation. Changed error shapes) only ship in a new version (`/api/v2/...`).
 - **The previous version keeps working for at least 6 months** after a new version ships.
 - **Breaking changes are announced in the [changelog](/changelog/2026-06-11) at least 30 days** before the new version goes live.
-- **Additive changes** (new endpoints, new optional fields, new actions) ship on the current version without notice — write your integration to tolerate unknown fields.
+- **Additive changes** (new endpoints, new optional fields, new actions) ship on the current version without notice, write your integration to tolerate unknown fields.
 
-Older unversioned paths (`/api/nodes`, ...) keep working indefinitely and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. If your client sees those headers, switch the base URL to `/api/v1` — nothing else changes.
+Older unversioned paths (`/api/nodes`,...) keep working indefinitely and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. If your client sees those headers, switch the base URL to `/api/v1`, nothing else changes.
 
 This contract is enforced mechanically: a frozen contract test suite runs in CI against every release candidate, and a breaking change blocks the deploy.
 
 ## Your Data Is Yours
 
-You can download your entire project as JSON at any time — every goal, need, approach, job, task, and phase. No export restrictions, no premium-only data access, no lock-in. The API that your agents use to read and write the tree is the same API you use to export everything.
+You can download your entire project as JSON at any time, every goal, need, approach, job, task, and phase. No export restrictions, no premium-only data access, no lock-in. The API that your agents use to read and write the tree is the same API you use to export everything.
 
 ```bash
 # Download your full project

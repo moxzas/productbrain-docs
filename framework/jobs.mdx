@@ -1,9 +1,8 @@
 ---
 title: "Jobs"
-description: "Verifiable checkpoints — observable proof that an approach is working."
+description: "Verifiable checkpoints. Observable proof that an approach is working."
 ---
-
-Jobs are **not tasks.** They are acceptance criteria — observable proof that a bet is being delivered.
+Jobs are **not tasks.** They are acceptance criteria. Observable proof that a bet is being delivered.
 
 <Warning>
 If you're used to Jira, Linear, or kanban boards: forget that model here. There is no backlog → doing → QA → done pipeline. A job is either proven or it isn't.
@@ -19,13 +18,13 @@ A job label describes **what you'd see** if the approach is working. The descrip
 | **Label** | "Upload progress bar reaches 100% for 500MB file" | "Implement chunked upload" |
 | **Label** | "Share link shows read-only tree" | "Create share endpoint" |
 
-The good labels are observable results. The bad labels are implementation steps — those belong in the **notes** field, where builder agents read them.
+The good labels are observable results. The bad labels are implementation steps. Those belong in the **notes** field, where builder agents read them.
 
 ## Three fields, three audiences
 
 - **Label** = what you can observe (strategist checks this)
-- **Description** = where to verify it — UI, devtools, API response
-- **Notes** = how to build it — implementation detail for coding agents
+- **Description** = where to verify it, UI, devtools, API response
+- **Notes** = how to build it, implementation detail for coding agents
 
 ## Maturity
 
@@ -48,17 +47,17 @@ A job has three states:
 | `delivered` | Dev work complete, proof condition not yet verified | Tracker integrations (automatic) or manual |
 | `done` | Proof verified in the deployed product | Human or agent (never automatic) |
 
-A closed ticket is a claim, not proof. When your delivery tracker signals that the linked work is complete, the job moves to `delivered` — the team says it's built. Moving to `done` means someone has verified the proof condition is actually met in the deployed product. That last step stays with you.
+A closed ticket is a claim, not proof. When your delivery tracker signals that the linked work is complete, the job moves to `delivered`. The team says it's built. Moving to `done` means someone has verified the proof condition is actually met in the deployed product. That last step stays with you.
 
 ## Granularity
 
-- **Each job should be verifiable in under a minute.** If you can't confirm it quickly, it's too big — split it.
+- **Each job should be verifiable in under a minute.** If you can't confirm it quickly, it's too big, split it.
 - **Don't create jobs until the approach is actively being worked.** The approach captures the bet. Jobs are the checkpoints when you're ready to execute.
 - **The approach is sometimes the job.** For simple approaches, don't decompose at all. Only create jobs when there's genuine complexity worth tracking separately.
 
 ## Execution discipline
 
-When working through jobs — whether you or an AI agent:
+When working through jobs. Whether you or an AI agent:
 
 1. Do the work for this checkpoint
 2. Verify it passes (check what the description says to check)
