@@ -1,0 +1,18 @@
+---
+title: "September 11, 2026"
+description: "The MCP server now covers the whole API, closed work can be reopened, and a failed batch cleans up after itself."
+---
+## Highlights
+
+- **The MCP server reaches everything the REST API does**. Webhooks, share links, members and agent seats, projects, export and tier status are now MCP tools alongside the plan and view tools, 25 in all, with the same in-band coaching in every response. The `get_tree` tool, which had never returned a result, works.
+- **Reopen a job or task from the API**. Set `status` to `open` and a job closed by mistake comes back. Reopening into a phase that is already closed is refused with a note saying which phase and what to do instead.
+- **A batch that fails part-way no longer leaves half-written changes**. Anything the batch had already written is removed and the response says what was undone, so your agent can retry cleanly.
+
+## Other improvements
+
+- **One agent key for several projects**. Team owners can mint an agent seat that spans a list of projects instead of one key per project.
+- **Team agent seats are no longer held to the free node limit**. Seats ride the owner's plan.
+- **Retrying a workflow step cannot double-write**. The workflow's apply step is idempotent, and very large payloads are rejected with a clear limit.
+- **The free Builder plan can run the workflow API**, as documented.
+- **Agents can find the guide from any error**. Client errors carry a link to the LLM guide, and `llms.txt` points there too.
+- **Upgrade dialog prices match checkout**.
