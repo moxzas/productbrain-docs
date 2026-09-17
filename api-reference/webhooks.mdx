@@ -1,52 +1,131 @@
 ---
 title: "Webhooks"
-description: "Receive real-time events when nodes and phases change."
+description: "Receive signed events when nodes and phases change."
 ---
-Webhooks deliver signed event payloads to your URL when nodes or phases are created, updated, or deleted. Use them to connect ProductBrain to Make.com, Zapier, n8n, or any workflow tool.
+Webhooks deliver HMAC-signed JSON payloads to your URL when nodes or phases are created, updated, or deleted. Use them to connect ProductBrain to Make.com, Zapier, n8n, or any workflow tool.
+
+```
+GET    /api/v1/webhooks?projectId=          list
+POST   /api/v1/webhooks                     register
+PATCH  /api/v1/webhooks                     update in place, or rotate the secret
+DELETE /api/v1/webhooks?projectId=&id=      remove
+```
+
+Webhooks are owner-only. A member's key gets `403 { "error": "Not your project" }`; an unknown project is `404`.
 
 ## Register a webhook
 
-```
-POST /api/v1/webhooks
+```bash
+curl -X POST "https://productbrain.com/api/v1/webhooks" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "my-project",
+    "url": "https://your-endpoint.example.com/webhook",
+    "events": ["node.added", "node.updated"]
+  }'
 ```
 
-```json
-{
-  "projectId": "my-project",
-  "url": "https://your-endpoint.example.com/webhook",
-  "events": ["node.added", "node.updated"]
-}
-```
-
-- `url` must be HTTPS and publicly routable
-- `events` is optional, omit to subscribe to all six event types
-- Maximum 10 webhooks per project
+- `url` must be `https` and publicly routable. `http://` returns `400 "url must use https"`; localhost and private ranges return `400 "url must be publicly routable"`.
+- `events` is optional. Omit it to subscribe to all six event types. An unknown event returns `400 "Invalid events: ... Valid: ..."`.
+- Maximum 10 webhooks per project (`400` at the cap).
 
 **Response:**
 
 ```json
 {
-  "id": "wh_abc123",
-  "url": "https://your-endpoint.example.com/webhook",
-  "events": ["node.added", "node.updated"],
-  "secret": "whsec_..."
+  "success": true,
+  "webhook": {
+    "id": "70ce12b6-484b-41dc-8140-ce6a4b4886cb",
+    "url": "https://your-endpoint.example.com/webhook",
+    "events": ["node.added", "node.updated"],
+    "createdAt": "2026-09-17T23:21:12.685009+00:00",
+    "secret": "whsec_f9db6720a2510cdb2ecb7e3baf7fcf72593183817046c02923cd7157f9a4d9a3"
+  },
+  "_meta": { "_tip": "Store the secret NOW ..." }
 }
 ```
 
-The `secret` is returned once at registration. Store it. You'll need it to verify signatures.
+The id is a UUID. The `secret` lives inside `webhook`, not at the top level, and is returned once. Store it; you need it to verify signatures. Listing never returns it again.
+
+## List webhooks
+
+```bash
+curl -s "https://productbrain.com/api/v1/webhooks?projectId=my-project" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "webhooks": [
+    {
+      "id": "70ce12b6-484b-41dc-8140-ce6a4b4886cb",
+      "url": "https://your-endpoint.example.com/webhook",
+      "events": ["node.added", "node.updated"],
+      "createdAt": "2026-09-17T23:21:12.685009+00:00",
+      "lastDeliveryAt": null,
+      "lastStatus": null
+    }
+  ]
+}
+```
+
+`lastDeliveryAt` and `lastStatus` (the HTTP status your endpoint last returned) are the health signal. Poll them to spot a failing receiver.
+
+## Update a webhook in place
+
+Change the URL or events without minting a new secret. The id stays the same and your receiver keeps verifying. Prefer this over delete and re-register, which mints a new secret and breaks the receiver.
+
+```bash
+curl -X PATCH "https://productbrain.com/api/v1/webhooks" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "id": "70ce12b6-...", "url": "https://new.example.com/hook", "events": ["node.added"] }'
+```
+
+```json
+{
+  "success": true,
+  "webhook": { "id": "70ce12b6-...", "url": "https://new.example.com/hook", "events": ["node.added"], "createdAt": "..." },
+  "_meta": { "_tip": "Updated in place on the same id ... the secret is unchanged, so your receiver keeps verifying without interruption." }
+}
+```
+
+Body: `{ projectId, id, url?, events?, rotateSecret? }`. At least one of `url`, `events`, `rotateSecret` is required (`400` otherwise). Unknown id: `404 "Webhook not found"`.
+
+### Rotate the secret
+
+```bash
+curl -X PATCH "https://productbrain.com/api/v1/webhooks" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "id": "70ce12b6-...", "rotateSecret": true }'
+```
+
+The response has the same shape as registration, with the new `secret` inside `webhook`, shown once. The old secret stops working immediately. In-flight retries are re-signed with the current secret, so rotation never breaks a pending delivery.
+
+## Delete a webhook
+
+```bash
+curl -X DELETE "https://productbrain.com/api/v1/webhooks?projectId=my-project&id=70ce12b6-484b-41dc-8140-ce6a4b4886cb" \
+  -H "Authorization: Bearer pb_..."
+# → { "success": true }
+```
+
+The query parameter is `id`. Any other name (`webhookId`, for example) returns `400 { "error": "id is required" }`. An unknown id returns `404 { "error": "Webhook not found" }`.
 
 ## Event types
 
 | Event | Fires when |
 |---|---|
-| `node.added` | A node is created |
-| `node.updated` | A node's data changes (label, status, phase, etc.) |
+| `node.added` | A node is created or restored |
+| `node.updated` | A node's data changes (label, status, phase, and so on) |
 | `node.deleted` | A node is deleted |
 | `iteration.added` | A phase is created |
-| `iteration.updated` | A phase is renamed or status changes |
+| `iteration.updated` | A phase is renamed or its status changes |
 | `iteration.deleted` | A phase is deleted |
 
-<Note>Phases are named `iteration` in the API. The event names and the payload field are the stable API identifier and won't change. The product UI calls the same thing a **phase**.</Note>
+<Note>Phases are named `iteration` in the API. The event names and the payload field are the stable API identifier. The product UI calls the same thing a phase.</Note>
 
 ## Payload
 
@@ -54,39 +133,41 @@ The `secret` is returned once at registration. Store it. You'll need it to verif
 {
   "event": "node.updated",
   "project_id": "my-project",
-  "timestamp": "2026-06-11T10:30:00Z",
+  "timestamp": "2026-06-11T10:30:00.000Z",
   "node": {
     "id": "job-42",
     "type": "job",
     "parentId": "approach-1",
     "data": {
       "label": "Price comparison shows for scanned barcode",
-      "status": "delivered",
+      "status": "done",
       "iteration": "MVP"
     }
   }
 }
 ```
 
-For iteration events, the payload includes `iteration` instead of `node`. Rename events include `previous_name`.
+`status: "done"` means the job is live in production. You may still see `"delivered"` on nodes written by older integrations; it is deprecated and means "not done yet".
+
+Phase events carry `iteration` instead of `node`: `{ "iteration": { "name": "MVP", "status": "done" } }`. `iteration.updated` includes `status` only when the update changed it; a rename carries `{ "name": "<new>" }` plus `previous_name`.
 
 ## Headers
 
 | Header | Description |
 |---|---|
-| `X-ProductBrain-Event` | Event type (e.g. `node.updated`) |
-| `X-ProductBrain-Delivery` | Delivery ID, **stable across all retries** of one event. Dedup on it to stay idempotent. |
-| `X-ProductBrain-Signature` | `sha256=<HMAC-SHA256 hex digest of raw body>` |
+| `X-ProductBrain-Event` | Event type (for example `node.updated`) |
+| `X-ProductBrain-Delivery` | Delivery ID, stable across every retry of one event. Dedup on it. |
+| `X-ProductBrain-Signature` | `sha256=<HMAC-SHA256 hex digest of the raw body>` |
 
 ## Verifying signatures
 
 ```javascript
 const crypto = require('crypto');
 
-function verify(body, signature, secret) {
+function verify(rawBody, signature, secret) {
   const expected = 'sha256=' + crypto
     .createHmac('sha256', secret)
-    .update(body)
+    .update(rawBody)
     .digest('hex');
   return crypto.timingSafeEqual(
     Buffer.from(signature),
@@ -95,32 +176,22 @@ function verify(body, signature, secret) {
 }
 ```
 
+Sign the raw request bytes, not a re-serialised object.
+
 ## Delivery semantics
 
-**At-least-once.** Every event is persisted durably *before* the first attempt, so a receiver that's briefly down never loses it. We attempt delivery immediately. If your endpoint returns a non-2xx status or doesn't respond within 5 seconds, we retry with exponential backoff (~2, 4, 8, 16, 32 minutes) up to **6 attempts total**, then mark the delivery `failed`.
+At-least-once. Every event is persisted before the first attempt, so a receiver that is briefly down never loses it. Delivery is attempted immediately. If your endpoint returns a non-2xx status or does not respond within 5 seconds, the event is retried with exponential backoff, up to 6 attempts in total, then marked `failed`.
 
-Because it's at-least-once, **your receiver must be idempotent**. The same event can arrive more than once (e.g. you process it but acknowledge past the 5-second window, so we retry). **Dedup on `X-ProductBrain-Delivery`**, which is stable across every retry of one event.
+The backoff between attempts is 2, 4, 8, 16 and 32 minutes (capped at 60). Retries are picked up by a scheduler that runs every 2 minutes, so each wait can be up to 2 minutes longer than the nominal figure. A delivery that fails every attempt is exhausted roughly an hour after the first try.
 
-Each attempt re-signs the body with your webhook's *current* secret, so rotating the secret never breaks an in-flight retry.
+Because delivery is at-least-once, your receiver must be idempotent. The same event can arrive more than once (for example you process it but acknowledge past the 5-second window). Dedup on `X-ProductBrain-Delivery`.
 
-- **Health monitoring**. `GET /api/v1/webhooks` returns the last delivery time and HTTP status per webhook. Poll it to monitor health.
-- **Reconcile failures**. A delivery that exhausts all 6 attempts is marked `failed` and not retried further. Catch up by reading `GET /api/v1/nodes`.
-
-## List webhooks
-
-```
-GET /api/v1/webhooks?projectId=my-project
-```
-
-## Delete a webhook
-
-```
-DELETE /api/v1/webhooks?projectId=my-project&webhookId=wh_abc123
-```
+- **Health monitoring.** `GET /webhooks` returns `lastDeliveryAt` and `lastStatus` per webhook.
+- **Reconcile failures.** A delivery that exhausts all 6 attempts is marked `failed` and not retried further. Catch up by reading [`GET /nodes`](/api-reference/nodes).
 
 ## Integration guides
 
-Webhooks power the delivery tracker integrations via Make.com:
+Webhooks power the delivery-tracker integrations via Make.com:
 
 - [Linear integration](/guides/linear-integration)
 - [GitHub integration](/guides/github-integration)

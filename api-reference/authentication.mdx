@@ -1,63 +1,95 @@
 ---
 title: "Authentication"
-description: "API keys and how to authenticate requests."
+description: "API keys, scoping, and the error bodies you get when access is refused."
 ---
 All API requests require a Bearer token in the `Authorization` header.
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
-  https://productbrain.com/api/v1/nodes?projectId=your-project
+  "https://productbrain.com/api/v1/nodes?projectId=your-project"
 ```
 
-## API Keys
+## API keys
 
-API keys are per-user. Each key grants access only to projects owned by the key's user.
+API keys are per-user. A key grants access to the projects its user owns, plus any project the user is a member of.
 
 ### Generate a key
 
-Go to **Settings → API Keys** in the app. Click **Generate**. You'll get a `pb_...` key and a ready-to-use snippet with your base URL and project ID.
+Go to **Settings → API Keys** in the app and click **Generate**. You get a `pb_...` key and a ready-to-use snippet with your base URL and project ID.
 
 ### Key format
 
-Keys start with `pb_` followed by a random string. They are hashed server-side. ProductBrain never stores the raw key. If you lose it, generate a new one.
+Keys start with `pb_` followed by a random string. They are hashed server-side; ProductBrain never stores the raw key. If you lose it, generate a new one.
 
 ### Revoke a key
 
-From the same settings page, click **Revoke**. The key stops working immediately. Generate a new one if needed.
+From the same settings page, click **Revoke**. The key stops working immediately.
+
+### Agent seats
+
+On the Team plan an agent can have a key of its own, minted through `POST /api/v1/members`. That key is a separate identity with its own line in the changelog. See [Members](/api-reference/members).
 
 ## Scoping
 
-API keys are scoped to the user, not a specific project. If you own multiple projects, the same key works for all of them. The `projectId` parameter on each request determines which project you're operating on.
+Keys are scoped to the user, not to a project. If you own several projects, the same key works for all of them; the `projectId` parameter on each request selects the project.
 
-Attempting to access a project you don't own returns:
+## Which plans can use the API
+
+| Plan | API access |
+|---|---|
+| Free Builder | Yes, capped at `limits.node_cap` nodes per project (read it from [Tier status](/api-reference/tier-status)) |
+| Builder | Yes |
+| Team | Yes, including member and agent-seat keys on Team-owned projects |
+| Strategist | No. Writes return `403 { "error": "api_access_denied", "message": "REST API access requires Builder or Team tier" }` |
+
+## Error bodies
+
+### Missing or invalid key
 
 ```json
-{
-  "error": "project_access_denied",
-  "message": "API key does not have access to this project"
-}
+{ "error": "Unauthorized" }
 ```
 
-## Finding your Project ID
+HTTP `401`. The six core endpoints (`mutate`, `search`, `nodes`, `tree`, `iterations`, `workflow`) add `_meta.guide` with the URL of the LLM guide. `/share` and `/tier-status` say `"Invalid API key"` or `"Invalid token"` instead of `"Unauthorized"`.
+
+### A project you cannot access
+
+HTTP `403`. Treat `error` as the stable code and `message` as human text; the wording differs by endpoint.
+
+| Endpoint | Body |
+|---|---|
+| `POST /mutate` | `{ "error": "project_access_denied", "message": "API key does not have access to this project" }` |
+| `GET /nodes`, `/search`, `/tree`, `/iterations`, `/export-okf` | `{ "error": "project_access_denied", "message": "You do not have access to this project" }` |
+| `GET /view-state`, `POST /view-command`, `POST /workflow` | `{ "error": "You do not have access to this project" }` |
+| `/webhooks`, `/share` | `{ "error": "Not your project" }` |
+| `GET /members` | `{ "error": "Not a member of this project" }` |
+
+### A project that does not exist
+
+The status code also differs by endpoint. `/nodes`, `/search`, `/tree`, `/iterations`, `/export-okf` and `/mutate` return `400` with `"Project '<id>' not found"`. `/webhooks`, `/share`, `/members`, `/view-command`, `/view-state`, `/workflow` and `PATCH /projects` return `404` with the same message.
+
+## Finding your project ID
 
 ```bash
 curl -s https://productbrain.com/api/v1/projects \
   -H "Authorization: Bearer pb_your_api_key"
 ```
 
-Returns:
-
 ```json
 {
   "projects": [
-    { "id": "my-project", "name": "My Project" },
-    { "id": "example-lectureflow", "name": "Example: LectureFlow" }
+    { "id": "my-project", "name": "My Project", "archived": false, "role": "owner" },
+    { "id": "shared-plan", "name": "Shared Plan", "archived": false, "role": "member" }
   ]
 }
 ```
 
-Use the `id` value as `projectId` in all subsequent requests.
+Use the `id` value as `projectId` in every request. Archived projects are hidden unless you pass `?includeArchived=true`. See [Projects](/api-reference/projects).
 
-## Rate Limits
+## Attribution
 
-API requests are rate-limited to **100 requests per 60 seconds** per IP address. Blocked requests return `429 Too Many Requests`.
+Every write is recorded in the changelog with its source: the app UI or an API key, and which key. Optionally send `X-Agent-Id: <your-agent-name>` on writes to tag them with a readable agent name. The authenticating key is always recorded regardless.
+
+## Rate limits
+
+Requests are rate-limited to 100 per 60 seconds per IP address. Blocked requests return `429 Too Many Requests`.

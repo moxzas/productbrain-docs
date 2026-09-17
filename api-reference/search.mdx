@@ -2,21 +2,21 @@
 title: "Search"
 description: "Find nodes by meaning using semantic search."
 ---
-## Semantic Search
+## Semantic search
 
 ```
 GET /api/v1/search?projectId={projectId}&q={query}
 ```
 
-Finds nodes by meaning, not exact text match. Every node has a vector embedding, search matches by semantic similarity and returns ranked results with ancestor paths.
+Finds nodes by meaning, not exact text. Every node has a vector embedding; search ranks by semantic similarity and returns each hit with its ancestor path.
 
 ### Parameters
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `projectId` | Yes | The project to search |
-| `q` | Yes | Natural language search query |
-| `type` | No | Filter results by node type |
+| `q` | Yes | Natural-language query |
+| `type` | No | Restrict results to one node type |
 | `limit` | No | Max results (default 5, max 20) |
 
 ### Example
@@ -39,36 +39,54 @@ curl -s "https://productbrain.com/api/v1/search?projectId=my-project&q=reduce+ch
         "data": {
           "label": "Guided onboarding wizard",
           "measure": "80% of new users complete the wizard"
-        }
+        },
+        "createdAt": "2026-09-17T23:20:10.548519+00:00"
       },
       "similarity": 0.847,
       "ancestors": [
-        {
-          "id": "need-8",
-          "type": "need",
-          "label": "New users reach first value quickly"
-        },
-        {
-          "id": "goal-3",
-          "type": "goal",
-          "label": "Reduce churn in first 7 days"
-        }
+        { "id": "need-8", "type": "need", "label": "New users reach first value quickly" },
+        { "id": "goal-3", "type": "goal", "label": "Reduce churn in first 7 days" }
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "query": "reduce churn through onboarding",
+    "result_count": 1,
+    "applied_limit": 5,
+    "applied_type": null,
+    "truncated": false,
+    "weak_match": false
+  }
 }
 ```
 
-Results are ranked by similarity score (0–1). The `ancestors` array shows the full lineage from the node to the root goal, ordered from immediate parent to root.
+Each result is `{ node, similarity, ancestors }`. There is no top-level `id` or `label`; read them from `node`. `similarity` is 0 to 1, rounded to three decimals. `ancestors` runs from the immediate parent to the root goal.
 
-### When to use Search
+### Reading `_meta`
+
+Vector search always returns something, so `_meta` tells you how much to trust it:
+
+| Field | Meaning |
+|---|---|
+| `result_count` | Results returned |
+| `applied_limit`, `applied_type` | The limit and type filter the server used |
+| `truncated` | `true` when the result count hit the limit; there may be more |
+| `weak_match` | `true` when the best similarity is below 0.45. Refine the query before writing anything based on it. |
+| `_tip` | Present on an empty, weak, or truncated result with the suggested next step |
+
+### Errors
+
+- `400 { "error": "q query parameter is required" }` when `q` is missing or blank.
+- `503 { "error": "Embedding service unavailable" }` if the query could not be embedded. Retry.
+
+### When to use search
 
 | I need to... | Use |
 |---|---|
 | Find a node by concept or description | Search |
 | Check if work already exists before creating | Search |
-| Find the right parent for a new node | Search |
-| List all jobs in an iteration | [Nodes](/api-reference/nodes) with `type` and `iteration` filters |
+| Find the right parent for a new node | Search, then [Tree](/api-reference/tree) with `direction=context` if it is still ambiguous |
+| List all jobs in a phase | [Nodes](/api-reference/nodes) with `type` and `iteration` filters |
 | Export the full tree | [Nodes](/api-reference/nodes) |
 
 Search is the default operation. Use it before creating nodes to avoid duplicates and to find the right placement.

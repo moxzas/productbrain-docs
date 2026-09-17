@@ -2,10 +2,10 @@
 title: "API Overview"
 description: "Read, search, and mutate your ProductBrain project programmatically."
 ---
-The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It's the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
+The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It is the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
 
 <Note>
-**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, machine-readable contract, every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. This page is the human tour of the same surface.
+**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the canonical contract: every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. These pages are the human tour of the same surface. Where a page and the guide differ, the guide wins.
 </Note>
 
 ## Base URL
@@ -16,39 +16,41 @@ https://productbrain.com/api/v1
 
 ## Authentication
 
-All requests require a Bearer token. A per-user API key generated from the app.
+Every request carries a Bearer token: a per-user API key generated in the app.
 
 ```bash
 curl -H "Authorization: Bearer pb_your_api_key" \
-  https://productbrain.com/api/v1/nodes?projectId=your-project
+  "https://productbrain.com/api/v1/nodes?projectId=your-project"
 ```
 
-Keys start with `pb_`, are scoped to your projects, and can be generated from **Settings → API Keys**. See [Authentication](/api-reference/authentication) for details.
+Keys start with `pb_`, are scoped to your projects, and are generated from **Settings → API Keys**. See [Authentication](/api-reference/authentication).
 
-## Endpoints at a Glance
+## Endpoints at a glance
 
 ### Search nodes by meaning
 
 ```bash
 GET /api/v1/search?projectId=my-project&q=onboarding+flow&limit=3
-# → { results: [{ node: { id, type, data }, similarity: 0.85, ancestors: [...] }] }
+# → { results: [{ node: { id, type, parentId, data, createdAt }, similarity: 0.85, ancestors: [...] }],
+#     _meta: { query, result_count, applied_limit, applied_type, truncated, weak_match } }
 ```
 
 ### List nodes (with filters)
 
 ```bash
 GET /api/v1/nodes?projectId=my-project&type=job&iteration=MVP
-# → { nodes: [{ id, type, parentId, data }], _meta: { currentIteration, nodeCounts } }
+# → { nodes: [{ id, type, parentId, data, createdAt }], _meta: { currentIteration, iterations, nodeCounts } }
 ```
 
 ### Create a node
 
 ```bash
 POST /api/v1/mutate
+Idempotency-Key: 7b1f2c84-...
 { "action": "add", "projectId": "my-project",
   "node": { "type": "job", "parentId": "approach-1",
     "data": { "label": "Upload progress reaches 100%", "iteration": "MVP" } } }
-# → { success: true, node: { id: "job-42", ... } }
+# → { success: true, node: { id: "job-42", ... }, _meta: { focus: { nodeId, viewCommand } } }
 ```
 
 ### Update a node
@@ -57,80 +59,91 @@ POST /api/v1/mutate
 POST /api/v1/mutate
 { "action": "update", "projectId": "my-project",
   "nodeId": "job-42", "data": { "status": "done" } }
+# → { success: true, node: { id: "job-42", type, parentId, data } }
 ```
 
-### Get current iteration
+### Get the current phase
 
 ```bash
 GET /api/v1/iterations?projectId=my-project&current=true
-# → { iteration: { name: "MVP", status: "active" } }
+# → { iteration: { name: "MVP", status: "active", system: false, sortOrder: 1, createdAt } }
 ```
 
 ### Navigate the tree
 
 ```bash
 GET /api/v1/tree?projectId=my-project&nodeId=approach-1&direction=context
-# → { ancestors: [...], siblings: [...], children: [...] }
+# → { ancestors: [approach-1, need-3, goal-1], path: [...], siblings: [...], children: [...] }
 ```
 
-Full details for these: [Nodes](/api-reference/nodes) · [Search](/api-reference/search) · [Mutations](/api-reference/mutations) · [Iterations](/api-reference/iterations).
+`ancestors` starts with the node itself and walks to the root. `children` is the whole subtree beneath the node, each entry carrying a `depth`. See [Tree](/api-reference/tree).
 
-## The full surface an agent can operate
+## The full surface
 
-- **Plan the tree**, read, semantic-search, and mutate (`/nodes`, `/search`, `/mutate`, `/tree`), with batch all-or-nothing writes and re-embedding on change.
-- **Drive the live view**, switch tree/matrix, select a phase, expand, focus, and zoom the canvas in real time (`/view-command`), and read back exactly what the user is looking at (`/view-state`).
-- **Run the methodology**, drive ProductBrain's planning state machine with your *own* LLM, consuming zero AI credits (`/workflow`).
-- **Manage lifecycle**, share links mint / list / revoke / expire (`/share`). Webhooks register / update / rotate with HMAC signing (`/webhooks`).
-- **Self-coaching responses**, calls carry a `_meta` block: next-step hints, wrong-endpoint redirects, and a read-back of what each call did.
+| Area | Endpoints | Page |
+|---|---|---|
+| The plan | `GET /nodes`, `GET /search`, `GET /tree`, `POST /mutate`, `GET /iterations` | [Nodes](/api-reference/nodes), [Search](/api-reference/search), [Tree](/api-reference/tree), [Mutations](/api-reference/mutations), [Iterations](/api-reference/iterations) |
+| The methodology | `GET /workflow`, `POST /workflow` | [Workflow](/api-reference/workflow) |
+| The live view | `POST /view-command`, `GET /view-state` | [View control](/api-reference/view) |
+| Projects and access | `GET /projects`, `PATCH /projects`, `GET/POST/DELETE /members`, `GET /tier-status` | [Projects](/api-reference/projects), [Members](/api-reference/members), [Tier status](/api-reference/tier-status) |
+| Sharing and integrations | `POST/GET/DELETE /share`, `GET/POST/PATCH/DELETE /webhooks`, `GET /export-okf` | [Share links](/api-reference/share), [Webhooks](/api-reference/webhooks), [Export](/api-reference/export-okf) |
+| MCP | 25 tools, one per endpoint | [MCP server](/api-reference/mcp) |
 
-The [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the complete, current reference for all of it. The canonical contract your agent reads.
+Batches on `/mutate` are validated as a whole before anything is written. Apply is sequential, and a failure part-way is compensated where that is safe; the [Mutations](/api-reference/mutations) page explains the `rolledBack` and `partial` fields.
 
-## Key Principles
+## The `_meta` block
+
+Every endpoint can add a `_meta` object next to its data. It is advisory and forward-compatible:
+
+- `_meta._tip`: a next-step or recovery hint (what to do on an empty search, why a view command did not apply, that a secret is shown once).
+- `_meta.advisory`: structured backpressure, for example `{ type: "inbox_overflow", memos, threshold, suggestedFlow }`.
+- `_meta.focus`: `{ nodeId, viewCommand }` after a write, ready to pass to `POST /view-command`.
+- `_meta.guide`: on a `400`, `401` or `403` from `mutate`, `search`, `nodes`, `tree`, `iterations` and `workflow`, the URL of the LLM guide.
+
+Read it and adjust. It is there so an agent rarely has to come back to the docs mid-run.
+
+## Key principles
 
 <CardGroup cols={2}>
  <Card title="Search first" icon="magnifying-glass" href="/api-reference/search">
- Use `/api/v1/search?q=...` to find nodes by meaning. Don't pull all nodes and filter, search uses vector embeddings and returns ranked results with ancestor paths.
+ Use `/api/v1/search?q=...` to find nodes by meaning. Do not pull all nodes and filter. Search uses vector embeddings and returns ranked results with ancestor paths.
  </Card>
  <Card title="One write endpoint" icon="bolt" href="/api-reference/mutations">
- All writes go through `/api/v1/mutate`. The `action` field determines the operation: `add`, `update`, `delete`, `restore`, or `batch`.
+ All writes go through `/api/v1/mutate`. The `action` field selects the operation: `add`, `update`, `delete`, `restore`, `batch`, `classify`, the phase actions, and the project actions.
  </Card>
 </CardGroup>
 
-## For LLM Agents
+## For LLM agents
 
-This API is designed as a **session contract for LLM agents**. Your agent reads the documentation, operates the tree, and the session ends. There are no client-side dependencies to maintain, no SDK to update, no webhooks to rewire, no version pinning. Changes to the API are reflected in the documentation immediately. Your agent picks them up on the next session.
+This API is designed as a session contract for LLM agents. Your agent reads the documentation, operates the tree, and the session ends. There is no SDK to update and no version to pin. Changes to the API are reflected in the documentation, and your agent picks them up on the next session.
 
-The [LLM Operations Guide](https://productbrain.com/docs/llm-guide.md) is the canonical reference for any AI agent operating on ProductBrain. It covers the data model, hierarchy rules, field validation, placement workflow, and worked examples for generating a brain from a codebase or artifact.
-
-Give your agent this URL and your API key. It has everything it needs to get started.
+The [LLM Guide](https://productbrain.com/docs/llm-guide.md) covers the data model, hierarchy rules, field validation, placement workflow, and worked examples for generating a brain from a codebase or artifact. It is also served as [`llms.txt`](https://productbrain.com/llms.txt) and as one plain-text file at [`llms-full.txt`](https://productbrain.com/llms-full.txt).
 
 ## Rate limits
 
-The API is rate-limited **per IP address**, currently around 100 requests per minute. Exceed it and you get an HTTP `429`. Back off and retry after about a minute. It's a coarse, infrastructure-level guard against abuse, not a fine-grained per-key quota.
+The API is rate-limited per IP address, currently 100 requests per 60 seconds. Exceed it and you get an HTTP `429`. Back off and retry after about a minute. This is a coarse guard against abuse, not a per-key quota.
 
-Two honest caveats:
+- The limit is per IP, not per API key. Several clients behind one IP (an office network, a shared CI runner, a serverless platform that reuses egress IPs) share one budget.
+- Prefer one batch over many calls. `POST /api/v1/mutate` takes a batch of mutations in a single request.
 
-- **The limit is per IP, not per API key (for now).** If you drive the API from several clients behind one IP, an office network, a shared CI runner, a serverless platform that reuses egress IPs. They share one budget and can throttle each other. A per-key limit is on the roadmap. Until it ships, give a heavy workload its own IP.
-- **Prefer one batch over many calls.** `POST /api/v1/mutate` takes a batch of mutations in a single request. It's faster and stays well under the limit.
+Rate limits are about request volume, not cost. The whole API surface is credit-free.
 
-Rate limits are about request volume, not cost: the API surface is credit-free.
-
-## Versioning & Stability
+## Versioning and stability
 
 The API is versioned in the URL path. `https://productbrain.com/api/v1` is the current version. The commitment:
 
-- **We will not break your integration without warning.** Breaking changes (removed or renamed fields, endpoints, or actions. Tightened validation. Changed error shapes) only ship in a new version (`/api/v2/...`).
-- **The previous version keeps working for at least 6 months** after a new version ships.
-- **Breaking changes are announced in the [changelog](/changelog/2026-06-11) at least 30 days** before the new version goes live.
-- **Additive changes** (new endpoints, new optional fields, new actions) ship on the current version without notice, write your integration to tolerate unknown fields.
+- We will not break your integration without warning. Breaking changes (removed or renamed fields, endpoints or actions; tightened validation; changed error shapes) only ship in a new version (`/api/v2/...`).
+- The previous version keeps working for at least 6 months after a new version ships.
+- Breaking changes are announced in the [changelog](/changelog/2026-09-11) at least 30 days before the new version goes live.
+- Additive changes (new endpoints, new optional fields, new actions) ship on the current version without notice. Write your integration to tolerate unknown fields.
 
-Older unversioned paths (`/api/nodes`,...) keep working indefinitely and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. If your client sees those headers, switch the base URL to `/api/v1`, nothing else changes.
+The older unversioned paths keep working and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. Those headers are stamped on `/api/nodes`, `/api/mutate`, `/api/search`, `/api/tree`, `/api/iterations`, `/api/projects`, `/api/view-command`, `/api/view-state`, `/api/share` and `/api/webhooks`. `/api/workflow`, `/api/export-okf`, `/api/tier-status` and `/api/members` also answer on their unversioned paths but carry no headers today. Use `/api/v1` for all of them.
 
 This contract is enforced mechanically: a frozen contract test suite runs in CI against every release candidate, and a breaking change blocks the deploy.
 
-## Your Data Is Yours
+## Your data is yours
 
-You can download your entire project as JSON at any time, every goal, need, approach, job, task, and phase. No export restrictions, no premium-only data access, no lock-in. The API that your agents use to read and write the tree is the same API you use to export everything.
+You can download your entire project at any time: every goal, need, approach, job, task, and phase. No export restrictions and no premium-only data access. The API your agents use to read and write the tree is the same API you use to export everything, as JSON or as an [OKF bundle](/api-reference/export-okf).
 
 ```bash
 # Download your full project
@@ -138,7 +151,7 @@ curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project" \
   -H "Authorization: Bearer pb_..." > my-project-backup.json
 ```
 
-This is a commitment, not a feature. We believe a product should compete on the value it creates, not the cost of leaving. If ProductBrain stops being useful, your data leaves with you in one command.
+If ProductBrain stops being useful, your data leaves with you in one command.
 
 ## Pricing
 
