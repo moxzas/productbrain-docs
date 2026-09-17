@@ -1,0 +1,108 @@
+---
+title: "Projects"
+description: "List, create, rename, and archive projects."
+---
+A project is one brain: its nodes, phases, changelog, webhooks, and share links. Listing and archiving are verbs on `/api/v1/projects`; creating and renaming are actions on `/api/v1/mutate`.
+
+## List projects
+
+```
+GET /api/v1/projects
+```
+
+```bash
+curl -s "https://productbrain.com/api/v1/projects" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "projects": [
+    { "id": "my-project", "name": "My Project", "archived": false, "role": "owner" },
+    { "id": "shared-plan", "name": "Shared Plan", "archived": false, "role": "member" }
+  ]
+}
+```
+
+Projects you own come first, then projects you are a member of. Archived projects are hidden by default; pass `?includeArchived=true` to list them too.
+
+## Create a project
+
+Bootstrap a brain without the app. The project is created and its system `Later` phase is seeded, so nodes can be added immediately.
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "addProject",
+    "project": { "name": "My New Product" }
+  }'
+```
+
+```json
+{
+  "success": true,
+  "project": { "id": "my-new-product", "name": "My New Product" },
+  "iterations": [{ "name": "Later", "status": "active", "system": true }]
+}
+```
+
+- `project.id` is optional. The default lowercases the name and replaces whitespace with dashes; other punctuation is kept, and an id with punctuation fails validation. Pass an explicit `project.id` for such names.
+- An id must be 2 to 63 characters of lowercase letters, numbers and dashes, starting with a letter or number. Otherwise `400 "Invalid project id '...'"`.
+- Project ids are a global namespace. A taken id returns `400 "Project id 'x' is already taken ..."`.
+- Tier project limits apply. Exceeding them returns `403 { "error": "project_limit", "message": "Your tier (free) allows 1 project. ..." }`.
+- `addProject` does not honour `Idempotency-Key`. Pass an explicit `project.id` so a retried create fails cleanly instead of creating a second project.
+
+## Rename a project
+
+Changes the display name only. Owner-only.
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "renameProject",
+    "projectId": "my-project",
+    "name": "New Display Name"
+  }'
+# → { "success": true, "project": { "id": "my-project", "name": "New Display Name" }, "_meta": { "_tip": "..." } }
+```
+
+The project `id` is immutable. Every node, phase, webhook and share link references it, so keep using the same `projectId` after a rename. `name` is required, trimmed, and capped at 100 characters. A member (not the owner) gets `403 { "error": "project_access_denied", "message": "Only the project owner can rename a project" }`.
+
+## Archive a project
+
+Hide a project from the default list without deleting it. Reversible.
+
+```
+PATCH /api/v1/projects
+```
+
+```bash
+# Archive
+curl -X PATCH "https://productbrain.com/api/v1/projects" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "archived": true }'
+
+# Unarchive
+curl -X PATCH "https://productbrain.com/api/v1/projects" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "archived": false }'
+```
+
+```json
+{
+  "project": { "id": "my-project", "name": "My Project", "archived": true, "role": "owner" },
+  "_meta": { "tip": "Project archived. Archived projects are hidden from GET /api/v1/projects; pass ?includeArchived=true to list them." }
+}
+```
+
+- Archiving only affects listing. Nodes, phases, share links, webhooks and the API itself keep working on an archived project.
+- Owner-only. A member, or a wrong id, gets `404 "Project 'x' not found (you can only archive projects you own)"`.
+- `archived` must be a boolean; anything else is `400`.
+
+There is no delete through the API. Archive instead; deleting is done in the app and cascades to everything in the project.

@@ -1,0 +1,42 @@
+---
+title: "Export"
+description: "Export the whole brain as an Open Knowledge Format bundle."
+---
+```
+GET /api/v1/export-okf?projectId={projectId}
+```
+
+Exports the project as an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog) bundle (OKF v0.1): a directory of typed markdown files with YAML frontmatter, relationships as ordinary markdown links. The brain's node model maps almost one-to-one onto OKF's typed-concept graph, so an OKF-aware agent reads it with no translation layer. This is a third agent-legible surface alongside [`GET /nodes`](/api-reference/nodes) (JSON) and the [MCP server](/api-reference/mcp).
+
+```bash
+curl -s "https://productbrain.com/api/v1/export-okf?projectId=my-project" \
+  -H "Authorization: Bearer pb_..." | jq '.files | keys'
+```
+
+## Response
+
+```json
+{
+  "okf_version": "0.1",
+  "project": "my-project",
+  "file_count": 9,
+  "files": {
+    "index.md": "---\nokf_version: \"0.1\"\ntype: \"Index\"\n...",
+    "goals/goal-1.md": "---\ntype: \"Goal\"\ntitle: \"Help shoppers save money\"\ntimestamp: \"...\"\n---\n\nContains [Compare prices](/needs/need-1.md).\n",
+    "needs/need-1.md": "...",
+    "approaches/approach-1.md": "---\ntype: \"Approach\"\ntitle: \"Barcode price lookup\"\nkano: \"incremental\"\nsize: \"car\"\nmeasure: \"...\"\n...",
+    "jobs/job-1.md": "---\ntype: \"Job\"\ntitle: \"...\"\nmaturity: \"mvp\"\niteration: \"MVP\"\n...",
+    "tasks/task-1.md": "..."
+  },
+  "_meta": { "_tip": "Write each files[path] to disk to materialize the OKF bundle. ..." }
+}
+```
+
+`files` maps each bundle path to its markdown content. Write each one to disk to materialise the directory.
+
+- **One concept file per node**, organised by type: `goals/<id>.md`, `needs/<id>.md`, `approaches/<id>.md`, `jobs/<id>.md`, `tasks/<id>.md`. The filename is the concept ID.
+- **Frontmatter:** the one required OKF field `type` (`Goal`, `Need`, `Approach`, `Job`, `Task`), plus `title`, `description`, `timestamp` (the node's `createdAt`), and the node's type-specific fields (`status`, `maturity`, `kano`, `size`, `approachStatus`, `iteration`, `measure`, `kind`, `urgent`) as custom keys.
+- **Relationships are markdown links named in prose:** parent, `blockedBy`, and children link to other concept files, for example `[label](/needs/need-1.md)`.
+- A root **`index.md`** declares `okf_version: "0.1"` and lists every concept by type.
+
+Access follows the read endpoints: owners and members, `403 project_access_denied` otherwise, `400` for an unknown project.

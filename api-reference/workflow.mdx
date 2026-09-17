@@ -1,0 +1,98 @@
+---
+title: "Workflow"
+description: "Run ProductBrain's planning state machine with your own LLM."
+---
+`POST /api/v1/workflow` runs ProductBrain's planning methodology and hands the prompts to your model. ProductBrain supplies the project context, the prompt engineering and the structural validation; you supply the LLM. The result is a well-formed Goal → Need → Approach → Job change, applied for you, with no drafts to manage. It consumes no ProductBrain AI credits.
+
+## Flows
+
+| Flow | What it does | Input |
+|---|---|---|
+| `add` | Classifies a feature or idea, confirms placement, drafts the nodes | A short description |
+| `task-curate` | Triages the task inbox: merge, promote to job, discard, skip | None (reads the inbox) |
+| `phase-assign` | Fits unassigned jobs into themed phases, creating phases only when needed | None |
+
+`task-curate` is human-in-the-loop by design. Your classification is a set of proposals. Present each promote or discard to the user first and submit only their confirmed choices; set the rest to `skip`. The catalog carries this as an `advisory` on the flow, and the `start` response for `task-curate` repeats it in `_meta._tip`.
+
+## Discover the contract
+
+```
+GET /api/v1/workflow
+```
+
+No auth. Returns a machine-readable catalog: the protocol, each flow's `input` and `advance.response` shape, and notes. Build against that, not against this prose.
+
+```json
+{
+  "protocol": "POST {action:\"start\", projectId, flow, input} → {done:false, prompt, state}. ...",
+  "flows": [
+    { "name": "add", "description": "...", "input": "...", "response": { "signal": "...", "message": "...", "context": "...", "draftNodes": "..." } },
+    { "name": "task-curate", "...": "...", "advisory": "Treat your classification as PROPOSALS. ..." },
+    { "name": "phase-assign", "...": "..." }
+  ],
+  "notes": ["Runs with YOUR LLM and consumes NO ProductBrain AI credits.", "..."],
+  "_meta": { "_tip": "..." }
+}
+```
+
+## The loop
+
+Every call is a `POST` with `projectId` and an `action` of `start` or `advance`. A request without `action` returns `400 { "error": "action must be 'start' or 'advance'" }`.
+
+```bash
+# 1. Start. Returns a prompt (your project tree is injected) and an opaque state.
+curl -X POST "https://productbrain.com/api/v1/workflow" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "action": "start", "flow": "add", "input": "barcode price scanning" }'
+# → { "done": false, "prompt": "...", "state": { ... } }
+```
+
+2. Send `prompt` to your own LLM. Parse its reply into a structured response: `{ "message": "...", "signal": "classified|confirmed|draft_ready|needs_clarification", "context": {...}, "draftNodes": [...] }` for `add`, or with a `phases` or `actions` array for `phase-assign` or `task-curate`.
+
+```bash
+# 3. Advance. Submit the structured response. The machine validates it and
+#    returns the next prompt, a precise retryable error, or the terminal apply.
+curl -X POST "https://productbrain.com/api/v1/workflow" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "action": "advance", "state": <state>, "response": <your LLM output>, "nextInput": "yes" }'
+# mid-flow → { "done": false, "prompt": "...", "state": { ... } }
+# bad input → 400 { "error": "Step ... expected one of: ...", "retry": true, "state": <unchanged> }
+# terminal  → { "done": true, "changeset": [ ... ], "focus": "goal-7", "message": "...", "_meta": { "viewCommand": { ... } } }
+```
+
+Structured input only. The machine takes a parsed response object, not raw text. A missing or non-string `signal` is `400 { "error": "advance requires state and a structured response { signal, message, context, draftNodes }" }`. On a `400` with `retry: true`, re-call `advance` with the same `state` and a corrected response; do not call `start` again. `state` is opaque to you; pass it back verbatim.
+
+`nextInput` is the user's next utterance for conversational steps in `add`. When you omit it the machine proceeds as if the user agreed.
+
+## The changeset
+
+The terminal response's `changeset` is `{ action, nodeId, type, before, after }[]`: exactly what the apply did. `focus` is a node id to show the user, and `_meta.viewCommand` is ready to pass to [`POST /view-command`](/api-reference/view). To revert, reconstruct the inverse through [`/mutate`](/api-reference/mutations): `add` → delete, `update` → restore `before`, `delete` → re-add `before`. A `task-curate` run that changes nothing returns `done: true` with an empty `changeset`.
+
+## Retry safety
+
+When a terminal apply fails, the `500` tells you which of four situations you are in:
+
+| Response | What happened | What to do |
+|---|---|---|
+| `{ retry: true, partialApply: false }` | Rejected before any write: validation, tier, or the node cap. Nothing was written. | Fix the cause named in `error` and re-call `advance` with the same `state`. |
+| `{ retry: false, partialApply: false, alreadyApplied: true }` | A previous attempt at this same advance already landed. | Read `GET /nodes` to pick up the ids. Do not retry. |
+| `{ retry: true, partialApply: false }` with "still running" in the tip | An identical apply is in flight. | Wait a few seconds, then re-call `advance` with the same `state`. |
+| `{ retry: false, partialApply: true }` | The apply failed mid-flight and may have partially committed. | Read `GET /nodes` and reconcile before anything else. |
+
+The workflow's internal call to `/mutate` carries an `Idempotency-Key` derived from your `state` and `response`. Retrying an advance whose response never reached you cannot double-write. It cannot replay the original `changeset` either, so you get `alreadyApplied: true` and read the tree for the ids.
+
+## Payload limits
+
+Oversized requests are rejected with `400` before anything is written: at most 50 draft nodes per `add`, 100 phases and 1000 job assignments per `phase-assign`, 200 actions (each creating at most 10 nodes) per `task-curate`. Only the most recent 100 turns of conversation history in `state` are fed to the prompt. These are blast-radius guards, not product limits; split a bigger job across several flows.
+
+## Phase names
+
+Phase names must describe user value. `Later`, `Backlog`, `Polish` and `Catch-all` are rejected with `{ retry: true }`. Generic milestone names such as "Sprint" or "Phase 2" are not rejected but defeat the purpose.
+
+## Who can call it
+
+Any Builder license including the free Builder tier, and Team (or membership of a Team-owned project). An active Strategist key gets `403 "REST API access requires Builder or Team tier"`. A member's key on a project whose owner is not on Team gets `403 "Shared-project API access requires the project owner to be on the Team tier"`. Strategist users drive the same state machine through the app UI.
+
+## Over MCP
+
+The `run_workflow` tool takes the same body: `{ "action": "start", "flow": "add", "input": "..." }` to start and `{ "action": "advance", "state": ..., "response": ... }` to advance. See [MCP server](/api-reference/mcp).

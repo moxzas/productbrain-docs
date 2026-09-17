@@ -1,0 +1,98 @@
+---
+title: "View control"
+description: "Drive the live canvas and read what the user is looking at."
+---
+Two endpoints close the loop between an agent and a user with the app open: `POST /view-command` moves the canvas, and `GET /view-state` reads it back. Commands travel to the app over Realtime.
+
+Drive the view from the conversation, not only on explicit commands. When the user wants to look at, focus on, or compare something, answer and move their canvas: `selectIteration` to surface a phase, `zoomToNode` or `selectNode` to put a node in front of them, `setViewMode` to switch between tree and matrix.
+
+## Send a command
+
+```
+POST /api/v1/view-command
+```
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/view-command" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "command": { "type": "setViewMode", "mode": "matrix" } }'
+```
+
+```json
+{
+  "success": true,
+  "command": "setViewMode",
+  "commandId": 3410,
+  "_meta": { "_tip": "Command enqueued as id 3410 (not yet applied). Re-read GET /api/v1/view-state and confirm `last_applied_command.id` === 3410 ..." }
+}
+```
+
+`success: true` means enqueued, not applied. A connected client applies it within about two seconds.
+
+### Command types
+
+| Command | Body | Effect |
+|---|---|---|
+| `setViewMode` | `{ "type": "setViewMode", "mode": "tree" \| "matrix" }` | Switch view |
+| `selectIteration` | `{ "type": "selectIteration", "iterationName": "MVP" }` | Select a phase in the matrix |
+| `zoomToNode` | `{ "type": "zoomToNode", "nodeId": "approach-1" }` | Move the camera to a node |
+| `selectNode` | `{ "type": "selectNode", "nodeId": "job-12" }` | Highlight a node and open its side panel. Omit `nodeId` to deselect. |
+| `expandNode` | `{ "type": "expandNode", "nodeId": "goal-1" }` | Expand one node |
+| `expandAll` | `{ "type": "expandAll", "nodeId": "goal-1" }` | Expand a node and everything beneath it |
+| `collapseNode` | `{ "type": "collapseNode", "nodeId": "goal-1" }` | Collapse one node |
+| `focusGoals` | `{ "type": "focusGoals", "goalIds": ["goal-1", "goal-2"] }` | Show only these goals |
+
+An unknown `type` returns `400 { "error": "Invalid command", "validTypes": [...] }`.
+
+### Unresolved targets
+
+The API checks the target before enqueueing. A phase, node or goal that does not exist in the project returns HTTP `200` with `success: false` and a `_meta._tip` explaining why, so a typo never becomes a silent no-op:
+
+```json
+{ "success": false, "command": "zoomToNode", "_meta": { "_tip": "Node 'job-999' not found ... Find it via GET /api/v1/search or /api/v1/nodes." } }
+```
+
+`selectIteration` requires a non-empty `iterationName` and `focusGoals` a non-empty `goalIds`; sending `null` is refused the same way.
+
+### View-aware targeting
+
+- `selectNode` and `zoomToNode` auto-switch to matrix when the target is a job or task, the only view that renders them. Pass `"autoSwitch": false` in the command to stay in the current view.
+- Goals, needs and approaches are not auto-moved. Which view and expansion shows one best is your call: compose `setViewMode`, `selectIteration`, `focusGoals`, `expandNode` yourself. The `_tip` tells you the target's type.
+
+## Read the view state
+
+```
+GET /api/v1/view-state?projectId={projectId}
+```
+
+```bash
+curl -s "https://productbrain.com/api/v1/view-state?projectId=my-project" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "view_mode": "tree",
+  "selected_iteration": "Alpha release",
+  "expanded_nodes": ["goal-1", "need-1"],
+  "focused_goals": ["goal-1"],
+  "selected_node": "approach-1",
+  "updated_at": "2026-05-17T...",
+  "last_applied_command": { "id": 1514, "type": "selectNode", "at": "2026-05-17T..." },
+  "command_seq": 1514,
+  "clients_connected": true,
+  "last_client_seen": "2026-05-17T...",
+  "_meta": { "_tip": "..." }
+}
+```
+
+Before any client has connected, the response is the defaults: `view_mode: "tree"`, empty lists, `last_applied_command: null`, `command_seq: 0`, `clients_connected: false`.
+
+## Confirming a command landed
+
+1. `POST /view-command` returns a `commandId`.
+2. Re-read `GET /view-state` and check `last_applied_command.id === commandId` (it equals `command_seq`). The id advances on every applied command, including a no-op, so this works even when the view did not visibly change.
+3. `clients_connected: false` means no live client (no heartbeat in the last 30 seconds). The command is queued but cannot apply until one connects, and `last_applied_command` will not advance.
+
+Read the state first (what is the user already looking at?), act, then confirm.
