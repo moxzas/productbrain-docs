@@ -88,13 +88,36 @@
             ]
           },
           {
-            "group": "Endpoints",
+            "group": "The plan",
             "pages": [
               "api-reference/nodes",
               "api-reference/search",
+              "api-reference/tree",
               "api-reference/mutations",
               "api-reference/iterations",
+              "api-reference/workflow"
+            ]
+          },
+          {
+            "group": "The view",
+            "pages": [
+              "api-reference/view"
+            ]
+          },
+          {
+            "group": "Projects and access",
+            "pages": [
+              "api-reference/projects",
+              "api-reference/members",
+              "api-reference/share",
+              "api-reference/tier-status"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
               "api-reference/webhooks",
+              "api-reference/export-okf",
               "api-reference/mcp"
             ]
           }

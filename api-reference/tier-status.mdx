@@ -1,0 +1,52 @@
+---
+title: "Tier status"
+description: "Read your plan, API access, credit balance, and limits."
+---
+```
+GET /api/v1/tier-status
+```
+
+Returns the plan and limits of the key's user. No `projectId`. Check it before a large run so an agent can self-throttle instead of discovering a cap mid-flight.
+
+```bash
+curl -s "https://productbrain.com/api/v1/tier-status" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "tier": "builder",
+  "status": "active",
+  "api_access": true,
+  "has_realtime": true,
+  "has_share_management": true,
+  "lapsed": false,
+  "builderTrial": false,
+  "trialExpiresAt": null,
+  "credits": { "used": 0, "limit": 0, "remaining": 0 },
+  "limits": { "max_projects": null, "max_seats": 2, "node_cap": null },
+  "period": { "start": "2026-09-08T...", "end": "2026-10-08T..." },
+  "_meta": { "_tip": "..." }
+}
+```
+
+## Fields
+
+| Field | Meaning |
+|---|---|
+| `tier` | `free`, `strategist`, `builder`, or `team`. A lapsed paid plan reports `free`. |
+| `status` | `active`, `trialing`, `past_due`, or `canceled` |
+| `api_access` | Whether this key can write through the REST API. `true` on free (capped), Builder and Team. |
+| `has_realtime` | Live canvas and view control available in the app |
+| `has_share_management` | Listing and revoking share links available in the app |
+| `lapsed` | `true` when a paid plan has ended and the account is on free rules |
+| `builderTrial`, `trialExpiresAt` | Legacy trial flags. `api_access` is authoritative. |
+| `credits` | In-app AI credits for the period. `limit: null` means unlimited. The REST API and MCP use none. |
+| `limits.max_projects` | Projects you can own. `null` means unlimited. |
+| `limits.max_seats` | Distinct seats (you plus members and agents) across your projects |
+| `limits.node_cap` | Nodes per project on the free tier. `null` means uncapped. Read it here rather than hard-coding a number. |
+| `period` | The current billing or calendar period. `null` for a contributor identity |
+
+`credits` only concern AI features used through the app. The whole API surface, including [`/workflow`](/api-reference/workflow) with your own model, is credit-free, which is what the `_tip` points at when the balance is low.
+
+A guest contributor identity reports `tier: "strategist"` with `is_contributor: true`, `api_access: false`, `max_projects: 0` and `period: null`: they work in the app on the projects shared with them and cannot use the API or create projects.

@@ -1,0 +1,95 @@
+---
+title: "Tree"
+description: "Walk the tree from a node: ancestors, subtree, siblings, or all three."
+---
+## Navigate the tree
+
+```
+GET /api/v1/tree?projectId={projectId}&nodeId={nodeId}&direction={direction}
+```
+
+Structured traversal from one node. Use it instead of pulling every node flat, and after a [search](/api-reference/search) when a candidate parent needs a closer look.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `projectId` | Yes | The project |
+| `nodeId` | Yes | The starting node |
+| `direction` | Yes | `up`, `down`, `lateral`, or `context` |
+
+Every node in a response carries `id`, `type`, `parentId`, `data`, and `createdAt`.
+
+### `up`: ancestor chain
+
+Leaf to root, starting with the node itself.
+
+```bash
+curl -s "https://productbrain.com/api/v1/tree?projectId=my-project&nodeId=job-1&direction=up" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "nodes": [
+    { "id": "job-1", "type": "job", "parentId": "approach-1", "data": { "label": "Scan returns a price" }, "createdAt": "..." },
+    { "id": "approach-1", "type": "approach", "parentId": "need-1", "data": { "label": "Barcode price lookup" }, "createdAt": "..." },
+    { "id": "need-1", "type": "need", "parentId": "goal-1", "data": { "label": "Shoppers compare prices" }, "createdAt": "..." },
+    { "id": "goal-1", "type": "goal", "parentId": null, "data": { "label": "Help shoppers save money" }, "createdAt": "..." }
+  ],
+  "path": ["job-1", "approach-1", "need-1", "goal-1"]
+}
+```
+
+### `down`: subtree
+
+Depth-first, the node itself first at `depth: 0`, then every descendant with its `depth`.
+
+```json
+{
+  "nodes": [
+    { "id": "goal-1", "depth": 0, "..." : "..." },
+    { "id": "need-1", "depth": 1, "..." : "..." },
+    { "id": "approach-1", "depth": 2, "..." : "..." }
+  ],
+  "_meta": { "nodeCount": 3, "maxDepth": 2 }
+}
+```
+
+A subtree over 50 nodes adds a `_tip` suggesting a narrower direction or a filtered [nodes](/api-reference/nodes) read.
+
+### `lateral`: siblings
+
+Nodes with the same parent, excluding the queried node. A root node has no siblings; the response says so in `_meta._tip` rather than returning an empty list silently.
+
+```json
+{ "nodes": [ { "id": "approach-2", "..." : "..." } ] }
+```
+
+### `context`: everything around one node
+
+```bash
+curl -s "https://productbrain.com/api/v1/tree?projectId=my-project&nodeId=approach-1&direction=context" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "ancestors": [ { "id": "approach-1" }, { "id": "need-1" }, { "id": "goal-1" } ],
+  "path": ["approach-1", "need-1", "goal-1"],
+  "siblings": [ { "id": "approach-2" } ],
+  "children": [ { "id": "job-1", "depth": 1 }, { "id": "job-2", "depth": 1 } ]
+}
+```
+
+Two details to read carefully:
+
+- `ancestors` includes the node itself as its first entry, then walks up to the root.
+- `children` is the entire subtree below the node, not just direct children. Each entry has a `depth` (direct children are `depth: 1`).
+
+### Errors
+
+- `400 { "error": "direction must be one of: up, down, lateral, context" }`
+- `404 { "error": "Node 'job-999' not found", "_meta": { "_tip": "Never guess node IDs. ..." } }`
+
+Node IDs are never worth guessing. Find them with [Search](/api-reference/search).

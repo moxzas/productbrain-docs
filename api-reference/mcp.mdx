@@ -2,10 +2,10 @@
 title: "MCP Server"
 description: "Connect ProductBrain to Claude Desktop, Claude Code, or Cursor over MCP."
 ---
-The ProductBrain MCP server lets an MCP client, **Claude Desktop, Claude Code, Cursor**, drive your plan directly: search, read, mutate, run the planning methodology, and read/drive the live view.
+The ProductBrain MCP server lets an MCP client (Claude Desktop, Claude Code, Cursor) drive your plan directly: search, read, mutate, run the planning methodology, drive the live view, and manage projects, webhooks, share links and seats.
 
 <Note>
-**A thin shim, on purpose.** The server is a thin transport over ProductBrain's versioned **v1 REST API**. Each tool is one call to an existing `/api/v1` endpoint. The REST contract stays canonical: it's stable when the MCP spec churns, you can drop to raw HTTP or bring your own LLM any time, and responses carry the same in-band `_meta` coaching the API returns.
+**A thin shim, on purpose.** The server is a thin transport over ProductBrain's versioned v1 REST API. Each tool is one call to an existing `/api/v1` endpoint, and a tool result is that endpoint's JSON verbatim, including the `_meta` coaching. The REST contract stays canonical: the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the contract for every tool below, and you can drop to raw HTTP or bring your own LLM at any time.
 </Note>
 
 ## Install
@@ -37,43 +37,84 @@ claude mcp add productbrain \
 
 </CodeGroup>
 
-Cursor and other clients: add an `mcpServers` entry with the same `command` / `args` / `env`.
+Cursor and other clients: add an `mcpServers` entry with the same `command`, `args` and `env`.
 
 ## Configuration
 
 | Variable | Required | Default |
 |---|---|---|
-| `PRODUCTBRAIN_API_KEY` | yes |. (your `pb_` key from the app's **API Keys** modal) |
-| `PRODUCTBRAIN_PROJECT_ID` | no |, (tools also accept a `projectId` argument) |
+| `PRODUCTBRAIN_API_KEY` | yes | none. Your `pb_` key from the app's **API Keys** modal |
+| `PRODUCTBRAIN_PROJECT_ID` | no | none. Tools also accept a `projectId` argument |
 | `PRODUCTBRAIN_API_URL` | no | `https://productbrain.com/api/v1` |
 
 ## Tools
 
+25 tools, one per endpoint operation. Every response carries the same `_meta` coaching the REST API returns.
+
+**The plan**
+
 | Tool | Maps to | Use |
 |---|---|---|
-| `search` | `GET /search` | Semantic search, **use first** for any lookup |
-| `list_nodes` | `GET /nodes` | Bulk read, optional type / iteration filter |
-| `get_tree` | `GET /tree` | A node in context (ancestors / siblings / children / subtree) |
-| `mutate` | `POST /mutate` | Create / update / delete nodes + phases. Pass `idempotencyKey` to make retries safe |
-| `list_iterations` | `GET /iterations` | Phases. `current: true` for the active one |
-| `run_workflow` | `POST /workflow` | Story-Mapping methodology (add / task-curate / phase-assign) |
-| `set_view` / `read_view` | `POST /view-command`, `GET /view-state` | Drive / read the live canvas |
-| `export_okf` | `GET /export-okf` | The plan as a portable OKF file bundle |
+| `search` | `GET /search` | Semantic search. Use first for any lookup. Arguments: `q`, `projectId?` |
+| `list_nodes` | `GET /nodes` | Bulk read, optional `type` and `iteration` filters |
+| `get_tree` | `GET /tree` | A node in context. `relation` is `context` (default), `ancestors`, `subtree` or `siblings`; the endpoint's own `up`, `down`, `lateral`, `context` are accepted too |
+| `mutate` | `POST /mutate` | `action` plus the rest of the v1 body in `payload`. Actions: `add`, `update`, `delete`, `restore`, `batch`, `classify`, `addIteration`, `updateIteration`, `deleteIteration`, `reorderIterations`. Pass `idempotencyKey`; it becomes the `Idempotency-Key` header |
+| `list_iterations` | `GET /iterations` | Phases. `current: true` for the active one, `status` to filter |
+| `run_workflow` | `POST /workflow` | The planning methodology with your own LLM. `body` is the v1 workflow body: `{ action: "start", flow, input }` or `{ action: "advance", state, response }` |
+
+**The view**
+
+| Tool | Maps to | Use |
+|---|---|---|
+| `set_view` | `POST /view-command` | `command` is the v1 command object (`setViewMode`, `selectIteration`, `zoomToNode`, `selectNode`, `expandNode`, `expandAll`, `collapseNode`, `focusGoals`) |
+| `read_view` | `GET /view-state` | What the user is looking at now, plus `last_applied_command` to confirm a command landed |
+
+**Projects**
+
+| Tool | Maps to | Use |
+|---|---|---|
 | `list_projects` | `GET /projects` | Projects you own or are a member of. `includeArchived` for the rest |
-| `create_project` | `POST /mutate {addProject}` | Bootstrap a brain. Seeds the system "Later" phase |
+| `create_project` | `POST /mutate {addProject}` | Bootstrap a brain. Seeds the system `Later` phase. Pass an explicit `id`; `addProject` is not retry-safe |
 | `rename_project` | `POST /mutate {renameProject}` | Change the display name. The id is immutable |
 | `archive_project` | `PATCH /projects` | Hide or unhide without deleting (reversible) |
+
+**Export**
+
+| Tool | Maps to | Use |
+|---|---|---|
+| `export_okf` | `GET /export-okf` | The plan as a portable OKF file bundle |
+
+**Webhooks**
+
+| Tool | Maps to | Use |
+|---|---|---|
 | `list_webhooks` | `GET /webhooks` | Registered hooks with `lastStatus`, to spot a failing receiver |
-| `create_webhook` | `POST /webhooks` | Register. Returns the signing secret **once** |
-| `update_webhook` | `PATCH /webhooks` | Change url or events in place, or `rotateSecret: true`. Prefer over delete and recreate |
-| `delete_webhook` | `DELETE /webhooks` | Remove a registration |
-| `create_share_link` | `POST /share` | Mint a **public** read-only link. `expiresInDays` for a TTL |
+| `create_webhook` | `POST /webhooks` | Register. The signing secret is returned once, inside `webhook` |
+| `update_webhook` | `PATCH /webhooks` | Change `url` or `events` in place, or `rotateSecret: true`. Prefer over delete and recreate |
+| `delete_webhook` | `DELETE /webhooks` | Remove a registration by `id` |
+
+**Share links**
+
+| Tool | Maps to | Use |
+|---|---|---|
+| `create_share_link` | `POST /share` | Mint a public read-only link. `expiresInDays` for a TTL, `settings` to scope it |
 | `list_share_links` | `GET /share` | Audit every token minted, with an `active` flag |
 | `revoke_share_link` | `DELETE /share` | Kill a leaked or stale link |
+
+**Members and budget**
+
+| Tool | Maps to | Use |
+|---|---|---|
 | `list_members` | `GET /members` | Humans and agent seats on a project |
-| `add_agent_seat` | `POST /members` | Mint an agent seat. The `pb_` key is returned **once** (Team plan) |
+| `add_agent_seat` | `POST /members` | Mint an agent seat. The `pb_` key is returned once (Team plan) |
 | `invite_contributor` | `POST /members` | Passwordless guest invite, scoped to the projects you name (Team plan) |
 | `revoke_member` | `DELETE /members` | Remove a seat. An agent's key dies with its last membership |
 | `tier_status` | `GET /tier-status` | Your plan, API access, credit balance and limits. Check before a large run |
+
+Two conveniences the shim adds: `create_project` and `rename_project` are tools even though the server implements them as `/mutate` actions, and `mutate` takes an `idempotencyKey` argument that becomes the header. Everything else is a one-to-one pass-through: the tier gates, error shapes and one-time secrets are exactly as documented on the endpoint pages.
+
+## Cost
+
+Bringing your own model over MCP consumes zero ProductBrain AI credits. The whole API surface is credit-free.
 
 The complete contract, every endpoint, field, and validation rule, is the [LLM Guide](https://productbrain.com/docs/llm-guide.md).

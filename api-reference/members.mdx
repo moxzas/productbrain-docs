@@ -1,0 +1,109 @@
+---
+title: "Members"
+description: "List members, mint agent seats, invite contributors, and remove seats."
+---
+A seat is an identity on a project: a human or an agent. Seats are counted by distinct identity across all of the owner's projects, plus the owner, and capped by the plan (`limits.max_seats` on [Tier status](/api-reference/tier-status)). Minting seats requires the Team plan.
+
+```
+GET    /api/v1/members?projectId=                   list (owner or any member)
+POST   /api/v1/members  { projectId, agent: { name } }        mint an agent seat (owner, Team)
+POST   /api/v1/members  { agent: { name }, projectIds: [...] } one agent seat across several projects (owner, Team)
+POST   /api/v1/members  { projectId, email }                  add an existing user as a member (owner, Team)
+POST   /api/v1/members  { contributor: { email, projectIds } } invite a guest contributor (owner, Team)
+DELETE /api/v1/members?projectId=&userId=           remove a seat (owner, or yourself)
+```
+
+## List members
+
+```bash
+curl -s "https://productbrain.com/api/v1/members?projectId=my-project" \
+  -H "Authorization: Bearer pb_..."
+```
+
+```json
+{
+  "owner": "user_2abc...",
+  "members": [
+    { "userId": "agent_9f3a...", "type": "agent", "displayName": "Delivery Agent", "role": null, "createdAt": "2026-09-01T..." },
+    { "userId": "user_7def...", "type": "human", "displayName": "sam@example.com", "role": "contributor", "createdAt": "2026-09-02T..." }
+  ]
+}
+```
+
+Keys are never returned here.
+
+## Mint an agent seat
+
+An agent seat is an identity of its own, with its own `pb_` key and its own line in the changelog, so an agent's writes are attributable and revocable without touching a human's key.
+
+```bash
+# One project
+curl -X POST "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "agent": { "name": "Delivery Agent" } }'
+
+# Several projects, one identity and one key (you must own all of them)
+curl -X POST "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "agent": { "name": "Fleet Agent" }, "projectIds": ["alpha", "beta", "gamma"] }'
+```
+
+```json
+{
+  "success": true,
+  "member": { "userId": "agent_9f3a...", "type": "agent", "displayName": "Fleet Agent" },
+  "projects": ["alpha", "beta", "gamma"],
+  "apiKey": "pb_...",
+  "_meta": { "_tip": "apiKey is shown ONCE ..." }
+}
+```
+
+- `apiKey` is returned once. There is no retrieval. The single-project form returns the same shape without `projects`.
+- Prefer `projectIds` when one agent works across several of your projects: one key to store, rotate and audit, and one seat however many projects it spans. Pass the `projectId` you mean on each request as usual.
+- You must own every project you name. Otherwise `403 { "error": "not_owner", "message": "You do not own: ..." }` and nothing is created.
+- Adding a project later means POSTing the full list again, which mints a new identity and key. Name every project up front.
+- On Builder you get the owner seat plus your own key from the app; provision your agent with that. Asking for a seat anyway returns `403 { "error": "team_tier_required", "message": "Adding members requires the Team tier." }`.
+- At the seat cap: `403 { "error": "seat_limit", "message": "Your plan allows 5 seats. Remove a member or upgrade." }`.
+
+The agent's key works on every endpoint. On `/mutate` and `/workflow` it rides the owner's Team plan and the owner's node limit.
+
+## Add an existing user
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "email": "sam@example.com" }'
+# → { "success": true, "member": { "userId": "user_...", "type": "human", "displayName": "sam@example.com" } }
+```
+
+The email must belong to an existing ProductBrain account (`404 { "error": "user_not_found", ... }` otherwise). Already a member: `400`.
+
+## Invite a guest contributor
+
+A contributor is a new, passwordless guest identity scoped to the projects you name. They work in the app UI on those projects only; AI use is billed to your plan.
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "contributor": { "email": "guest@example.com", "projectIds": ["alpha", "beta"] } }'
+```
+
+```json
+{
+  "success": true,
+  "invited": { "email": "guest@example.com", "projects": ["alpha", "beta"], "invitationId": "inv_...", "role": "contributor" },
+  "_meta": { "_tip": "A passwordless invite email was sent. ..." }
+}
+```
+
+One seat regardless of project count. An email that already has a ProductBrain account returns `409 { "error": "email_in_use", ... }`; add that person as a full member instead. If the invitation email cannot be sent, `502 { "error": "invite_failed", ... }`.
+
+## Remove a seat
+
+```bash
+curl -X DELETE "https://productbrain.com/api/v1/members?projectId=my-project&userId=agent_9f3a..." \
+  -H "Authorization: Bearer pb_..."
+# → { "success": true }
+```
+
+The owner can remove anyone; a member can remove only themselves (`403` otherwise). Not a member: `404`. Removing an agent seat from one project leaves its key working on the rest. Removing its last membership revokes the key.

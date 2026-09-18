@@ -1,10 +1,10 @@
 ---
 title: "Iterations"
-description: "List, create, update, and reorder iterations."
+description: "List, create, update, close, and reorder phases."
 ---
-Iterations are thematic delivery slices, bundles of work that ship together. They are not sprints (no fixed timebox) and not releases (no deployment coupling).
+Phases are thematic delivery slices: bundles of work that ship together. They are not sprints (no fixed timebox) and not releases (no deployment coupling). The API calls them `iterations`; the product UI calls the same thing a phase.
 
-## List Iterations
+## List phases
 
 ```
 GET /api/v1/iterations?projectId={projectId}
@@ -16,9 +16,9 @@ GET /api/v1/iterations?projectId={projectId}
 |-----------|----------|-------------|
 | `projectId` | Yes | The project to query |
 | `status` | No | Filter: `active` or `done` |
-| `current` | No | Set to `true` to get only the current iteration |
+| `current` | No | Set to `true` to get only the current phase |
 
-### Get all iterations
+### Get all phases
 
 ```bash
 curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project" \
@@ -28,25 +28,16 @@ curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project" \
 ```json
 {
   "iterations": [
-    {
-      "name": "MVP",
-      "status": "active",
-      "system": false,
-      "sortOrder": 1
-    },
-    {
-      "name": "Later",
-      "status": "active",
-      "system": true,
-      "sortOrder": 99
-    }
-  ]
+    { "name": "Later", "status": "active", "system": true, "createdAt": 1789687185603, "sortOrder": 0 },
+    { "name": "MVP", "status": "active", "system": false, "createdAt": 1789687336371, "sortOrder": 1, "gitTags": ["v0.3.0"] }
+  ],
+  "_meta": { "_tip": "Add &current=true for just the active iteration ..." }
 }
 ```
 
-### Get the current iteration
+### Get the current phase
 
-The current iteration is the first active, non-system iteration by sort order. Use this when you need to know what's being worked on now.
+The current phase is the first active non-system phase by sort order. Use this when the user says "add it to the current phase".
 
 ```bash
 curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project&current=true" \
@@ -55,27 +46,25 @@ curl -s "https://productbrain.com/api/v1/iterations?projectId=my-project&current
 
 ```json
 {
-  "iteration": {
-    "name": "MVP",
-    "status": "active",
-    "system": false,
-    "sortOrder": 1
-  }
+  "iteration": { "name": "MVP", "status": "active", "system": false, "createdAt": 1789687336371, "sortOrder": 1 }
 }
 ```
 
-### Iteration fields
+When no non-system phase is active, `iteration` is `null` and `_meta._tip` explains how to list or create one.
+
+### Phase fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | Iteration name (unique within project) |
+| `name` | string | Unique within the project |
 | `status` | string | `active` or `done` |
-| `system` | boolean | System iterations (e.g. "Later") can't be deleted |
+| `system` | boolean | System phases (`Later`) cannot be deleted |
 | `sortOrder` | number | Display order |
-| `gitTags` | string[] | Associated git tags (optional) |
-| `completedAt` | number | Timestamp when marked done (auto-set) |
+| `createdAt` | number | Unix milliseconds |
+| `completedAt` | number | Unix milliseconds, present once the phase is done |
+| `gitTags` | string[] | Present only when tags have been attached |
 
-## Create an Iteration
+## Create a phase
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -84,13 +73,18 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
   -d '{
     "action": "addIteration",
     "projectId": "my-project",
-    "iteration": { "name": "Phase 2" }
+    "iteration": { "name": "Self-serve onboarding" }
   }'
+# → { "success": true, "iteration": { "name": "Self-serve onboarding", "status": "active", "system": false, "sortOrder": 2 } }
 ```
 
-## Update an Iteration
+Name a phase by the user value it delivers, not a dev milestone. The names `Later`, `Backlog`, `Polish` and `Catch-all` are rejected (case-insensitive) with `400 "'Backlog' is a forbidden phase name ..."`. A duplicate name returns `400 "Iteration 'X' already exists"`.
 
-PATCH semantics. Use this to rename, mark done, or add git tags.
+To fit existing unassigned jobs into phases, prefer the `phase-assign` [workflow](/api-reference/workflow); it groups by theme and reuses phases where a job fits.
+
+## Update a phase
+
+PATCH semantics. Use this to rename, close, describe, reorder, or attach git tags.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -102,13 +96,33 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "iterationName": "MVP",
     "data": { "status": "done" }
   }'
+# → { "success": true }
 ```
 
-Marking an iteration as `done` automatically sets `completedAt`. Done iterations are hidden from the UI dropdown and matrix view.
+Fields accepted in `data`: `name`, `status`, `description`, `gitTags`, `sortOrder`, `completedAt`. Marking a phase `done` sets `completedAt` automatically. Done phases are hidden from the UI dropdown and the matrix. Renaming a phase updates the `iteration` field on every job and task assigned to it.
 
-## Delete an Iteration
+The `addIteration` shape is accepted too: `{ "action": "updateIteration", "iteration": { "name": "MVP", "status": "done" } }`.
 
-System iterations (e.g. "Later") cannot be deleted.
+### Closing a phase that still has open jobs
+
+A closed phase cannot hold open work. If the phase has open jobs, closing it returns:
+
+```json
+{
+  "success": false,
+  "error": "phase_has_open_jobs",
+  "openJobs": [{ "id": "job-1", "label": "Scan returns a price" }],
+  "_meta": { "_tip": "Phase 'MVP' has 1 open job(s): job-1. ..." }
+}
+```
+
+HTTP `409`. Either mark the jobs done first, or retry with `"ejectOpenJobs": true` to move them to `Later` and close the phase in one call. The response then lists them:
+
+```json
+{ "success": true, "ejectedToLater": ["job-1"], "_meta": { "_tip": "Closed 'MVP' and moved 1 open job(s) to Later: job-1." } }
+```
+
+## Delete a phase
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -119,11 +133,14 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "projectId": "my-project",
     "iterationName": "Phase 2"
   }'
+# → { "success": true }
 ```
 
-## Reorder Iterations
+System phases cannot be deleted (`400 "Cannot delete system iterations"`). An unknown name returns `404`. Move or close the phase's jobs before deleting it; the delete itself does not reassign them.
 
-Pass the full ordered list of iteration names.
+## Reorder phases
+
+Pass the full ordered list of phase names.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -134,4 +151,9 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "projectId": "my-project",
     "order": ["MVP", "Phase 2", "Phase 3", "Later"]
   }'
+# → { "success": true }
 ```
+
+## Webhook events
+
+`addIteration`, `updateIteration` and `deleteIteration` fire `iteration.added`, `iteration.updated` and `iteration.deleted`. Reordering does not fire an event. See [Webhooks](/api-reference/webhooks).

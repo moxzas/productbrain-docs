@@ -1,20 +1,25 @@
 ---
 title: "Mutations"
-description: "Create, update, and delete nodes."
+description: "Create, update, delete, restore, and batch nodes."
 ---
-All writes go through a single endpoint. The `action` field determines the operation.
+All writes go through one endpoint. The `action` field selects the operation.
 
 ```
 POST /api/v1/mutate
 ```
 
-## Add a Node
+Node actions: `add`, `update`, `delete`, `restore`, `batch`, `classify`. Phase actions (`addIteration`, `updateIteration`, `deleteIteration`, `reorderIterations`) are on the [Iterations](/api-reference/iterations) page. Project actions (`addProject`, `renameProject`) are on the [Projects](/api-reference/projects) page.
 
-Creates a new node with an auto-generated ID.
+Send an `Idempotency-Key` header on every write so a retry never double-applies. See [Idempotency](#idempotency).
+
+## Add a node
+
+Creates a node with a generated ID.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
+  -H "Idempotency-Key: 7b1f2c84-2f1e-4b0a-9c3d-your-uuid" \
   -H "Content-Type: application/json" \
   -d '{
     "action": "add",
@@ -45,23 +50,30 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
       "maturity": "mvp",
       "iteration": "MVP"
     }
+  },
+  "_meta": {
+    "focus": { "nodeId": "job-199", "viewCommand": { "type": "zoomToNode", "nodeId": "job-199" } }
   }
 }
 ```
 
+`_meta.focus.viewCommand` can be passed straight to [`POST /view-command`](/api-reference/view) to show the user what you just did. A job or task created without an `iteration` lands in `Later` and the response says so in `_meta._tip`.
+
 ### Parent rules
 
-| Type | Parent required | Parent type |
-|------|-----------------|-------------|
-| Goal | No | None |
-| Need | Yes | Goal |
-| Approach | Yes | Need |
-| Job | Yes | Approach |
-| Task | No | None |
+| Type | Parent | Parent type |
+|------|--------|-------------|
+| Goal | None. Do not send a `parentId`. | |
+| Need | Required | Goal |
+| Approach | Required | Need |
+| Job | Required | Approach |
+| Task | None | |
 
-## Update a Node
+A task is standalone work that does not fit the tree (bugs, polish, captures). It is created without a `kind`; the API classifies it as `memo` or `do-it` asynchronously. Re-read the node, or call `{ "action": "classify", "nodeId": "task-1" }` to classify it on demand.
 
-PATCH semantics. Only include fields you want to change. Existing fields are preserved.
+## Update a node
+
+PATCH semantics. Include only the fields you want to change; the rest are preserved.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -73,13 +85,26 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "nodeId": "job-45",
     "data": { "status": "done" }
   }'
+# → { "success": true, "node": { "id": "job-45", "type": "job", "parentId": "approach-3", "data": { ... } } }
 ```
 
-To mark a job as not done, set `status` to `null`.
+`parentId` can be sent alongside `data` to reparent a node; the new parent must be the right type.
 
-## Delete a Node
+### Status
 
-Hard delete. The node is removed from the table, but the full node is kept in the changelog, so a delete is **recoverable** with `restore` (below).
+`done` means live in production. That is the whole gate; there is no separate verification step.
+
+- To close a job or task: `{ "status": "done" }`.
+- To reopen one: `{ "status": "open" }`. It is stored as `null` and `completedAt` is cleared. An explicit `{ "status": null }` does the same.
+- `"delivered"` is deprecated. It is still accepted, but treat it as "not done yet" and do not set it for new work.
+
+A closed phase cannot hold open work. Reopening a job whose phase is `done` returns `400` with a `_meta._tip` that names the phase and both ways out: reopen into a live phase in the same call (`{ "status": "open", "iteration": "Later" }`), or reopen the phase first. If an update leaves a job open inside a done phase by another route, the job is moved to `Later` and `_meta._tip` says so.
+
+An unknown `nodeId` returns `400 { "success": false, "errors": ["Node with id 'job-999' not found"] }`.
+
+## Delete a node
+
+Hard delete.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -92,9 +117,25 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
   }'
 ```
 
-## Restore a Node
+```json
+{
+  "success": true,
+  "deleted": { "id": "job-99", "type": "job", "label": "..." },
+  "orphanedChildren": [],
+  "_meta": { "_tip": "Hard delete ... recover only via the changelog (there is no undo)." }
+}
+```
 
-Recover a hard-deleted node from the changelog. It returns with its original id, type, parentId, and data. Identify it by `nodeId` (restores the most recent deletion of that node) or by a specific `changelogId`.
+Two things to know before deleting a node that has children:
+
+- Everything beneath the node is removed too. The database enforces the parent link, so the children and grandchildren go with it. The response lists the direct children in `orphanedChildren`, but they are no longer in the project.
+- Only the node you named is written to the changelog. Its descendants are not, so they cannot be restored. If you want a subtree recoverable, delete the leaves first, one call each, or use a [batch](#batch-mutations).
+
+The LLM guide currently says that delete does not cascade and that a restored child comes back orphaned. The behaviour above is what the API does today (the parent link is a foreign key with `ON DELETE CASCADE`), and the guide is being corrected. This page documents observed behaviour on this point.
+
+## Restore a node
+
+Recover a hard-deleted node from the changelog. It returns with its original `id`, `type`, `parentId`, and `data`. Identify it by `nodeId` (restores the most recent deletion of that node) or by a specific `changelogId`.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -105,44 +146,79 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
     "projectId": "my-project",
     "nodeId": "job-99"
   }'
+# → { "success": true, "node": { ... }, "_meta": { "_tip": "Restored job-99 ...", "focus": { ... } } }
 ```
 
-- `409` if a node with that id already exists (nothing to restore). `404` if no deletion is on record.
-- If the node's original parent was also deleted, it comes back **orphaned** (dangling `parentId`). Restore the parent too, or reparent. The response `_meta._tip` flags this.
+- `409` if a node with that id already exists (nothing to restore). `404` if no deletion is on record, which is also what you get for a node that was removed as a descendant of another delete.
+- The original parent must still exist. If it was deleted too, restore the parent first; restoring under a missing parent currently fails with `500 { "success": false, "errors": ["Failed to restore node"] }`.
 - Restore does not cascade. It brings back the single node, not its former children.
 
-## Batch Mutations
+## Batch mutations
 
-Multiple operations in a single request. All-or-nothing. If any mutation fails validation, the entire batch is rejected.
+Several operations in one request. A batch may mix `add`, `update`, `delete`, and `addIteration`.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
   -H "Authorization: Bearer pb_..." \
+  -H "Idempotency-Key: 5a2d9e10-...-your-uuid" \
   -H "Content-Type: application/json" \
   -d '{
     "action": "batch",
     "projectId": "my-project",
     "mutations": [
+      { "action": "addIteration", "iteration": { "name": "Checkout" } },
       {
         "action": "add",
         "node": {
+          "id": "draft-job-1",
           "type": "job",
           "parentId": "approach-1",
-          "data": { "label": "First checkpoint", "iteration": "MVP" }
+          "data": { "label": "First checkpoint", "iteration": "Checkout" }
         }
       },
-      {
-        "action": "update",
-        "nodeId": "job-100",
-        "data": { "status": "done" }
-      }
+      { "action": "update", "nodeId": "job-100", "data": { "status": "done" } }
     ]
   }'
 ```
 
+```json
+{
+  "success": true,
+  "results": [
+    { "success": true, "iteration": { "name": "Checkout", "status": "active" } },
+    { "success": true, "node": { "id": "job-2", "type": "job", "parentId": "approach-1", "data": { "..." : "..." } } },
+    { "success": true, "node": { "id": "job-100", "..." : "..." } }
+  ]
+}
+```
+
+How a batch behaves:
+
+- **Validation is all-or-nothing.** Every mutation is validated before anything is written. One invalid mutation rejects the whole batch with `400 { "success": false, "errors": ["mutations[1]: ..."] }`.
+- **Phases first.** `addIteration` entries are applied before any node mutation, so a job can reference a phase created in the same batch.
+- **Temporary IDs.** To reference a node created earlier in the same batch, give it an `id` starting with `draft-` and use that as the `parentId` of a later mutation. It is remapped to the real ID on apply. Do not send other client IDs; any `id` that does not start with `draft-` is used as the real primary key.
+- **Apply is sequential, not a single transaction.** If a write fails part-way, the API compensates where it safely can: it deletes the nodes and phases this batch created, newest first, and the `500` reports what it undid.
+
+```json
+{
+  "success": false,
+  "error": "Failed to create node in batch: ...",
+  "rolledBack": { "nodes": 2, "iterations": 1 },
+  "partial": "...",
+  "_meta": { "_tip": "..." }
+}
+```
+
+Read `partial` before you retry:
+
+- Absent: nothing from the batch survives. `rolledBack` says how much was undone. Fix the cause and retry the whole batch.
+- Present: nothing was rolled back (`rolledBack` is `{ "nodes": 0, "iterations": 0 }`) and the batch is partially applied. Reconcile from `GET /nodes` and do not retry.
+
+Compensation is only safe while the batch has applied nothing but creates. Once an `update` or a `delete` has run, undoing the creates could take pre-existing rows with them, so the API stops, changes nothing further, and tells you. Two cases it cannot cover: a function timeout mid-compensation (you see no response at all; treat it like `partial`), and a timeout after the write succeeded (this is what the `Idempotency-Key` fixes). Smaller batches shrink the blast radius.
+
 ## Idempotency
 
-Make any `mutate` call (single or batch) safe to retry by sending an `Idempotency-Key` header. An opaque per-operation string (a UUID is ideal):
+Make any `mutate` call (single or batch) safe to retry by sending an `Idempotency-Key` **header**: an opaque string you generate per logical operation (a UUID is ideal).
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -152,23 +228,39 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
   -d '{ "action": "add", "projectId": "my-project", "node": { "type": "goal", "data": { "label": "..." } } }'
 ```
 
-- **Replay**. A second request with the same key *and the same body* returns the original response unchanged (with an `Idempotent-Replayed: true` header) instead of applying again. An agent that retries after a timeout never double-creates.
-- **Conflict**. The same key with a *different* body returns `409` (you reused a key for a new operation. Generate a fresh one).
-- **In flight**. If the first request is still running, a retry returns `409` ("in progress, retry shortly").
-- **Window**. Keys are remembered for 24 hours, then expire. Scope is per user.
+- **Replay.** A second request with the same key and the same body returns the original response unchanged, with an `Idempotent-Replayed: true` response header, instead of applying again.
+- **Conflict.** The same key with a different body returns `409 { "success": false, "errors": ["Idempotency-Key already used with a different request body"] }`. Generate a fresh key per operation.
+- **In flight.** If the first request is still running, a retry returns `409` ("still in progress, retry shortly").
+- **Window.** Keys are remembered for 24 hours. Scope is per user.
 
-Without an `Idempotency-Key`, retries are not deduplicated, re-read with `GET /api/v1/nodes` or `search` and re-submit only what's missing.
+<Warning>
+The key is a header. An `idempotencyKey` field in the request body is ignored: two requests with the same body key both create a node. The MCP server's `idempotencyKey` tool argument is fine because the shim turns it into the header.
+</Warning>
+
+`addProject` is the one action that does not honour the key. Pass an explicit `project.id` instead, so a repeat fails on the existing project rather than creating a second one.
+
+Without an `Idempotency-Key`, retries are not deduplicated. Re-read with `GET /nodes` or search and re-submit only what is missing.
 
 ## Validation
 
-The API validates all mutations before applying them:
+The API validates every mutation before applying it:
 
-- **Label is required** on all nodes
-- **Parent must exist** and be the correct type (need under goal, approach under need, etc.)
-- **Fields must match node type**, setting `iteration` on a goal or `maturity` on a task is rejected
-- **Kano values:** `must-have`, `performance`, `delighter`
+- **Label is required** on all nodes.
+- **Parent must exist** and be the correct type (need under goal, approach under need, job under approach).
+- **Fields must match the node type.** Setting `iteration` on a goal or `maturity` on a task is rejected with `'iteration' can only be set on job or task nodes, not on goal`.
+- **Kano values:** `must-have`, `incremental`, `delighter`. `performance` is accepted as an alias for `incremental` and stored as sent.
 - **Size values:** `skateboard`, `vespa`, `car`, `truck`, `antonov`
 - **Maturity values:** `mvp`, `releasable`
 - **Approach status values:** `development`, `validation`, `resolved`, `retired`
+- **Status values:** `done`, or `open` to reopen (`delivered` is accepted but deprecated)
+- **Task kind:** `memo`, `do-it`; `urgent` only on a `do-it` task
 
-Validation errors return `{ "success": false, "errors": ["..."] }`.
+Validation errors return `400 { "success": false, "errors": ["'kano' must be one of: must-have, incremental, performance, delighter"] }` plus `_meta.guide`. Access and tier refusals use `{ "error": "<code>", "message": "..." }` instead; see [Authentication](/api-reference/authentication).
+
+## Free-tier node cap
+
+The free Builder tier caps nodes per project. Read the live number from [`GET /tier-status`](/api-reference/tier-status) (`limits.node_cap`). It is a soft ceiling:
+
+- An `add` or `batch` from under the cap is allowed to overshoot, so a multi-node branch is never stranded half-written.
+- At or over the cap, a new `add` or `batch` returns `403 { "error": "node_cap_reached", "current", "node_cap", "delete_to_resume" }`. `update` and `delete` are never gated.
+- The `add` that crosses the cap succeeds, and its response carries `_meta.advisory { "type": "node_cap_reached", ... }`.
