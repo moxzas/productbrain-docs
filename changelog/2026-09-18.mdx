@@ -1,0 +1,12 @@
+---
+title: "September 18, 2026"
+description: "A mistyped API path now returns a JSON 404 with the valid endpoints, and the workflow catalog describes the real request shape."
+---
+## Highlights
+
+- **A wrong API path tells you so**. A typo like `/api/v1/node` or a probe of `/api/v2/...` used to come back as a 200 with the app's HTML page, so an agent checking the status code saw success and then choked on the body. Every unknown path under `/api` now returns a JSON 404 with an `unknown_endpoint` error, the list of valid endpoints and a link to the guide.
+
+## Other improvements
+
+- **The workflow catalog matches the code**. `draftNodes` shows the real shape (`type`, optional `parentId`, and a `data` object holding the label), `nextInput` is documented, the four rejected phase names are listed exactly, and `create` appears under task-curate.
+- `llms.txt` and `llms-full.txt` open with the LLM guide link.
