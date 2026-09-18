@@ -69,7 +69,7 @@ These are the few things that will trip you if you skip them. The [LLM Guide](ht
 
 - **Search first, always.** For any lookup, `GET /api/v1/search?q=...` returns semantic matches ranked by similarity, with ancestor paths for placement context. Do **not** list all nodes and scan by label. That fails on label collisions and doesn't scale.
 - **One write endpoint.** All mutations go through `POST /api/v1/mutate`. The `action` field picks the operation: `add`, `update`, `delete`, `restore`, `batch`. Prefer one `batch` over many calls.
-- **Make retries safe.** Pass an `idempotencyKey` on writes so a retried call doesn't double-apply.
+- **Make retries safe.** Send an `Idempotency-Key` header on writes so a retried call doesn't double-apply. A key in the JSON body is ignored. See [Idempotency](/api-reference/mutations#idempotency).
 - **Respect the hierarchy.** Goal → Need → Approach → Job, plus standalone Tasks. Fields are type-specific. The guide has the full validation contract, and the API also tells you in-band via `_meta` when you get it wrong.
 
 ## A first move
@@ -89,7 +89,7 @@ From there you can `mutate` with confidence. You know the parent, the siblings, 
 
 ## A full loop, read, ship, prove it
 
-This is the part most integrations skip: writing the proof back. A ProductBrain job's label is an **observable result, not an implementation step**. It *is* the acceptance test. So "done" means *verified*, never just *claimed*. Here is the whole loop with real calls.
+This is the part most integrations skip: writing the proof back. A ProductBrain job's label is an **observable result, not an implementation step**. It *is* the acceptance test. So `done` means the change is live in production and the condition holds there, never just that the code was written. Here is the whole loop with real calls.
 
 ```bash
 # 1. What iteration am I in, and what is the next job in it?
@@ -105,21 +105,21 @@ GET /api/v1/nodes?projectId=my-project&type=job&iteration=MVP
 The label is your acceptance test. Build until "the progress bar reaches 100% on a 2GB file" is observably true.
 
 ```bash
-# 2. Dev done, not yet verified in the deployed product → status: "delivered".
-#    PATCH semantics: send only the field that changes. Record HOW in notes (auditable history).
-#    The idempotencyKey makes a retry safe.
+# 2. Built and checked on your side, but not yet live → record HOW in notes. No status change yet.
+#    PATCH semantics: send only the field that changes. Notes are the auditable history.
+#    The Idempotency-Key header makes a retry safe (a key in the body is ignored).
 POST /api/v1/mutate
+Idempotency-Key: job-42-notes-2026-06-22
 { "action": "update", "projectId": "my-project", "nodeId": "job-42",
   "data": {
-    "status": "delivered",
     "notes": "Chunked upload implemented; bar verified to 100% on a 2GB file; upload-progress.spec passing."
-  },
-  "idempotencyKey": "job-42-delivered-2026-06-22" }
+  } }
 ```
 
 ```bash
-# 3. Once it is live and you have checked the label's condition holds in production → status: "done".
-#    Never promote delivered → done without actually verifying.
+# 3. Once the change is live in production and the label's condition holds there → status: "done".
+#    done is a release fact. Do not set it while the work is only on a branch or on staging.
+#    You may see "delivered" on older nodes. It is deprecated and means "not done yet". Do not set it.
 POST /api/v1/mutate
 { "action": "update", "projectId": "my-project", "nodeId": "job-42",
   "data": { "status": "done" } }

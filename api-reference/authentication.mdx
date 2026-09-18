@@ -50,7 +50,7 @@ Keys are scoped to the user, not to a project. If you own several projects, the 
 { "error": "Unauthorized" }
 ```
 
-HTTP `401`. The six core endpoints (`mutate`, `search`, `nodes`, `tree`, `iterations`, `workflow`) add `_meta.guide` with the URL of the LLM guide. `/share` and `/tier-status` say `"Invalid API key"` or `"Invalid token"` instead of `"Unauthorized"`.
+HTTP `401`. The six core endpoints (`mutate`, `search`, `nodes`, `tree`, `iterations`, `workflow`) add `_meta.guide` with the URL of the LLM guide. A missing header is `401 { "error": "Unauthorized" }` on every endpoint. A rejected key is `"Invalid API key"` on `/share` and `"Invalid token"` on `/tier-status`; every other endpoint keeps `"Unauthorized"`.
 
 ### A project you cannot access
 
@@ -66,7 +66,7 @@ HTTP `403`. Treat `error` as the stable code and `message` as human text; the wo
 
 ### A project that does not exist
 
-The status code also differs by endpoint. `/nodes`, `/search`, `/tree`, `/iterations`, `/export-okf` and `/mutate` return `400` with `"Project '<id>' not found"`. `/webhooks`, `/share`, `/members`, `/view-command`, `/view-state`, `/workflow` and `PATCH /projects` return `404` with the same message.
+The status code also differs by endpoint. `/nodes`, `/search`, `/tree`, `/iterations`, `/export-okf` and `/mutate` return `400` with `"Project '<id>' not found"`. `/webhooks`, `/share`, `/members`, `/view-command`, `/view-state` and `/workflow` return `404` with the same message. `PATCH /projects` returns `404` with a longer message, quoted on the [Projects](/api-reference/projects) page.
 
 ## Finding your project ID
 

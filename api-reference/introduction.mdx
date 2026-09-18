@@ -5,7 +5,7 @@ description: "Read, search, and mutate your ProductBrain project programmaticall
 The ProductBrain API lets LLM agents and scripts read, search, and modify your project. It is the same API that Claude Code, Cursor, and other AI agents use to operate on your planning tree.
 
 <Note>
-**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the canonical contract: every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. These pages are the human tour of the same surface. Where a page and the guide differ, the guide wins.
+**Agents and LLMs:** the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the canonical contract: every endpoint, field, validation rule, and worked example. Give your agent that one URL and your API key and it has everything. These pages are the human tour of the same surface. Where a page and the guide differ, the guide wins, except where a page says it documents observed behaviour.
 </Note>
 
 ## Base URL
@@ -155,4 +155,4 @@ If ProductBrain stops being useful, your data leaves with you in one command.
 
 ## Pricing
 
-API access is included on the **Builder** ($19/mo) and **Team** ($99/mo) plans. The free Builder tier also includes the API, capped at 100 nodes per project. Strategist plans use AI features through the app UI instead. [Sign up at app.productbrain.com](https://app.productbrain.com).
+API access is included on the **Builder** ($19/mo) and **Team** ($99/mo) plans. The free Builder tier also includes the API, with a per-project node cap. Read the live cap from [`/tier-status`](/api-reference/tier-status) (`limits.node_cap`) rather than hard-coding a number. Strategist plans use AI features through the app UI instead. [Sign up at app.productbrain.com](https://app.productbrain.com).

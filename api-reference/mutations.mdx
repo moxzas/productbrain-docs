@@ -131,6 +131,8 @@ Two things to know before deleting a node that has children:
 - Everything beneath the node is removed too. The database enforces the parent link, so the children and grandchildren go with it. The response lists the direct children in `orphanedChildren`, but they are no longer in the project.
 - Only the node you named is written to the changelog. Its descendants are not, so they cannot be restored. If you want a subtree recoverable, delete the leaves first, one call each, or use a [batch](#batch-mutations).
 
+The LLM guide currently says that delete does not cascade and that a restored child comes back orphaned. The behaviour above is what the API does today (the parent link is a foreign key with `ON DELETE CASCADE`), and the guide is being corrected. This page documents observed behaviour on this point.
+
 ## Restore a node
 
 Recover a hard-deleted node from the changelog. It returns with its original `id`, `type`, `parentId`, and `data`. Identify it by `nodeId` (restores the most recent deletion of that node) or by a specific `changelogId`.

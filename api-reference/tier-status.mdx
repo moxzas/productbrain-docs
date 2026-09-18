@@ -45,8 +45,8 @@ curl -s "https://productbrain.com/api/v1/tier-status" \
 | `limits.max_projects` | Projects you can own. `null` means unlimited. |
 | `limits.max_seats` | Distinct seats (you plus members and agents) across your projects |
 | `limits.node_cap` | Nodes per project on the free tier. `null` means uncapped. Read it here rather than hard-coding a number. |
-| `period` | The current billing or calendar period |
+| `period` | The current billing or calendar period. `null` for a contributor identity |
 
 `credits` only concern AI features used through the app. The whole API surface, including [`/workflow`](/api-reference/workflow) with your own model, is credit-free, which is what the `_tip` points at when the balance is low.
 
-A guest contributor identity reports `tier: "strategist"` with `is_contributor: true`, `api_access: false` and `max_projects: 0`: they work in the app on the projects shared with them and cannot use the API or create projects.
+A guest contributor identity reports `tier: "strategist"` with `is_contributor: true`, `api_access: false`, `max_projects: 0` and `period: null`: they work in the app on the projects shared with them and cannot use the API or create projects.
