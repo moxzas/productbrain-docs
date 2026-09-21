@@ -1,0 +1,16 @@
+---
+title: "September 20, 2026"
+description: "Shared plans unfurl with a title and shape, can opt into search indexing, and the Make yours link on a shared plan works again."
+---
+## Highlights
+
+- **A shared plan link now shows what it is**. Paste a `/shared/...` link into Slack, Discord or X and the preview carries the plan's name and its shape (how many goals, needs, approaches and jobs) instead of a bare "ProductBrain". Private shares stay out of search engines, now enforced in the page itself as well as the data endpoint.
+- **A plan can opt into search**. An owner or member can flip one share link to indexable with `PATCH /api/v1/share {token, publicIndex: true}` (or `settings.public_index` when minting). An indexable plan is served as readable HTML for crawlers and assistants, labels and descriptions only. Nothing changes for any link that has not been flipped.
+- **"Make yours" on a shared plan works again**. It used to land on a page that did not exist. It now opens the signup on the app, carrying where you came from.
+
+## Other improvements
+
+- **Webhooks carry a link into the app**. Every `node.*` payload has `node_url`, which opens the app on that node with its ancestors expanded. The Make blueprints for Linear, GitHub, Jira and Azure DevOps put the link under the marker line.
+- **Exports say where they came from**. JSON and OKF exports carry `_meta.source`, the plan's URL and the agent guide URL; the OKF `index.md` has the same in its frontmatter.
+- **Every API response names the guide**. `X-Powered-By: ProductBrain; guide=…` on `/api/*`, and `_meta.guide` on every endpoint, so an agent that meets the API cold can find the contract.
+- The onboarding email and the Make README now say the free tier includes API access, which it always did (standing access, 100-node cap).
