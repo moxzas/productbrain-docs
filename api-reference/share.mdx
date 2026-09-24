@@ -28,7 +28,7 @@ curl -X POST "https://productbrain.com/api/v1/share" \
 }
 ```
 
-- `expiresInDays` is optional. Without it the link never expires and `expiresAt` is `null`. Only a positive number sets a TTL; anything else is treated as absent.
+- `expiresInDays` is optional. Without it the link never expires and `expiresAt` is `null`. If you send it, it must be a JSON number that is a whole number from 1 to 3650. Anything else returns `400 invalid_expires_in_days` and nothing is minted: a numeric string (`"30"`), `0`, a negative number, a fraction, or `null`. The `message` says what was received and what is valid. An earlier version ignored a bad value and minted a link that never expired, which turned a typo into a permanent public credential.
 - `settings.includedGoalIds` scopes the shared view to specific goals: `{ "projectId": "...", "settings": { "includedGoalIds": ["goal-1"] } }`. If none of the ids are goals in the project, the link is still minted but the view will be empty, and `_meta._tip` warns you.
 
 ## List links
