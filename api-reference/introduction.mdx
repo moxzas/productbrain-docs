@@ -139,6 +139,8 @@ The API is versioned in the URL path. `https://productbrain.com/api/v1` is the c
 
 The older unversioned paths keep working and return a `Deprecation: true` header plus a `Link` header pointing at the `/api/v1` successor. Those headers are stamped on `/api/nodes`, `/api/mutate`, `/api/search`, `/api/tree`, `/api/iterations`, `/api/projects`, `/api/view-command`, `/api/view-state`, `/api/share` and `/api/webhooks`. `/api/workflow`, `/api/export-okf`, `/api/tier-status` and `/api/members` also answer on their unversioned paths but carry no headers today. Use `/api/v1` for all of them.
 
+An unknown or mistyped `/api/*` path returns `404` with `Content-Type: application/json` and the body `{ "error": "unknown_endpoint", ... }`, whose `_meta._tip` lists the valid v1 endpoints. That includes any `/api/v2/...` path while v2 does not exist, so probing for a version that has not shipped gets a clear answer rather than HTML. Key off `error`. A client should never see HTML from `/api/*`; if it does, that is a bug, not a signal about the API.
+
 This contract is enforced mechanically: a frozen contract test suite runs in CI against every release candidate, and a breaking change blocks the deploy.
 
 ## Your data is yours
