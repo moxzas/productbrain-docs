@@ -1,0 +1,74 @@
+name: copy gate
+
+# Publishing here is public and automatic: a merge to main auto-deploys via
+# Mintlify. So the only place a tell can be caught is before the merge.
+#
+# On 2026-09-25 a changelog entry shipped with three em-dashes and two
+# semicolons, when every prior entry had zero, and was corrected live. The rule
+# existed in standing instructions and nowhere a machine could enforce it. This
+# is the enforcement.
+#
+# --strict matters. Plain `detell` exits 1 only on the punctuation it can
+# auto-fix, so a semicolon in prose prints and PASSES. Two of that entry's five
+# tells were semicolons, so the default gate would have caught it by luck.
+
+on:
+  pull_request:
+    paths: ["**/*.mdx", "**/*.md", ".github/workflows/copy-gate.yml"]
+  push:
+    branches: [main]
+    paths: ["**/*.mdx", "**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Pinned to a COMMIT, not a branch: a change in detell must not silently
+      # alter what this repo is allowed to publish, and a broken main over there
+      # must not block a docs merge here. Bump deliberately.
+      # moxzas/detell is public, so this needs no credentials.
+      - name: Install detell
+        run: npm install -g github:moxzas/detell#20e6c63
+
+      # SCOPE: directories clean at the time this was added (2026-09-26), so the
+      # gate is green from its first run and any red means a tell was just
+      # introduced.
+      #
+      # Deliberately NOT gated yet, counts from that date:
+      #   api-reference/  8 files. GENERATED from docs/LLM_GUIDE.md, which is
+      #                   machine-facing and exempt, so hand-edits here are wiped
+      #                   by the next regeneration. Fix the generator or accept.
+      #   guides/         3 files (rule-of-three, not-X-but-Y)
+      #   trust/          2 files
+      # Those are pre-existing prose in published pages. Rewriting them is the
+      # founder's call, not a side effect of adding a gate. Add a directory here
+      # once it is clean.
+      - name: Check copy a human reads
+        run: detell --strict changelog/ use-cases/
+
+      - name: Explain a failure
+        if: failure()
+        run: |
+          cat <<'MSG'
+          Copy carries an AI tell. Nothing publishes until it is fixed.
+
+            detell --fix <file>    deterministic punctuation cleanup
+            detell notes           the knowledge base behind the rules
+
+          Structural flags (semicolon in prose, "not X, but Y", rule-of-three)
+          are NOT auto-fixable by design. Rewrite the sentence.
+
+          Machine-facing text belongs in .detellignore, not in a weakened gate:
+          llms.txt, an API contract, generated mirrors are parsed, not read.
+          MSG
+          exit 1
