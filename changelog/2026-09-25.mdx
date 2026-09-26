@@ -4,11 +4,11 @@ description: "Deleting a node no longer takes its subtree with it for good, proj
 ---
 ## Highlights
 
-- **Deleting a node no longer loses what was under it.** Delete has always removed a node's whole subtree — the API just said otherwise, listed only the direct children, and kept no record of the rest. Undo worked on the node you named and failed on everything beneath it. Now the response tells you exactly which nodes went with it, and **every one of them can be restored**, parents first. Batch deletes behave the same way.
+- **Deleting a node no longer loses what was under it**. Delete has always removed a node's whole subtree. The API said otherwise, listed only the direct children, and kept no record of the rest, so undo worked on the node you named and failed on everything beneath it. The response now tells you exactly which nodes went with it, and **every one of them can be restored**, parents first. Batch deletes behave the same way.
 
-- **Projects past a thousand nodes come back whole.** Reads stopped at a thousand rows and said nothing — the response reported the truncated count as the real one and told you it contained everything. Exports dropped the overflow too. Every full-project read now pages through to the end. If your plan is under a thousand nodes this changed nothing for you; if it was ever going to cross that line, it would have crossed it quietly.
+- **Projects past a thousand nodes come back whole**. Reads used to stop at a thousand rows without saying so. The response reported the truncated count as the real one and told you it contained everything, and exports dropped the overflow too. Every full-project read now pages through to the end. Under a thousand nodes nothing changes for you. Over it, the old behaviour was silent.
 
-- **You can read your plan's history.** `GET /api/v1/changelog` returns every change to a project, newest first: what happened, the node data on both sides, and **who did it** — the app, or the specific agent, by its key and its own declared name. Filter by node, action, source, agent or time; page with a cursor. It is also the only way to find a node after it has been deleted, which is what makes restoring one practical. Available over MCP as `get_changelog`.
+- **You can read your plan's history**. `GET /api/v1/changelog` returns every change to a project, newest first: what happened, the node data on both sides, and **who did it**. That means the app, or the specific agent, by its key and its own declared name. Filter by node, action, source, agent or time, and page with a cursor. It is also the only way to find a node after it has been deleted, which is what makes restoring one practical. Available over MCP as `get_changelog`.
 
 ## Other improvements
 
@@ -16,4 +16,4 @@ description: "Deleting a node no longer takes its subtree with it for good, proj
 - The API root, `productbrain.com/api`, now answers with the same JSON 404 as every other unknown path under `/api`.
 - The agent guide's batch example used a maturity value the API rejects. Copying it out of the guide now works.
 - The guide's delete and restore sections describe what those calls really do, including the order to restore a subtree in.
-- Minting a share link with a bad `expiresInDays` is documented as the `400` it returns, instead of the silently-ignored value it used to be.
+- A share link minted with a bad `expiresInDays` is documented as the `400` it returns, instead of the silently ignored value it used to be.
