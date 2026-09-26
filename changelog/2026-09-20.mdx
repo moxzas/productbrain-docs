@@ -11,6 +11,6 @@ description: "Shared plans unfurl with a title and shape, can opt into search in
 ## Other improvements
 
 - **Webhooks carry a link into the app**. Every `node.*` payload has `node_url`, which opens the app on that node with its ancestors expanded. The Make blueprints for Linear, GitHub, Jira and Azure DevOps put the link under the marker line.
-- **Exports say where they came from**. JSON and OKF exports carry `_meta.source`, the plan's URL and the agent guide URL; the OKF `index.md` has the same in its frontmatter.
+- **Exports say where they came from**. JSON and OKF exports carry `_meta.source`, the plan's URL and the agent guide URL. The OKF `index.md` has the same in its frontmatter.
 - **Every API response names the guide**. `X-Powered-By: ProductBrain; guide=…` on `/api/*`, and `_meta.guide` on every endpoint, so an agent that meets the API cold can find the contract.
 - The onboarding email and the Make README now say the free tier includes API access, which it always did (standing access, 100-node cap).
