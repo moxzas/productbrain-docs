@@ -17,7 +17,11 @@ on:
     paths: ["**/*.mdx", "**/*.md", ".github/workflows/copy-gate.yml"]
   push:
     branches: [main]
-    paths: ["**/*.mdx", "**/*.md"]
+    # The workflow file is in this list on purpose. Without it, a change to the
+    # gate itself does not re-run the gate, so a broken gate lands green and
+    # nobody finds out until the next docs edit. That happened on the first two
+    # attempts here: two pushes fixing the install produced no run at all.
+    paths: ["**/*.mdx", "**/*.md", ".github/workflows/copy-gate.yml"]
   workflow_dispatch:
 
 permissions:
