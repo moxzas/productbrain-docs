@@ -38,7 +38,7 @@ jobs:
       # must not block a docs merge here. Bump deliberately.
       # moxzas/detell is public, so this needs no credentials.
       - name: Install detell
-        run: npm install -g github:moxzas/detell#20e6c63
+        run: npm install -g "git+https://github.com/moxzas/detell.git#20e6c63"
 
       # SCOPE: directories clean at the time this was added (2026-09-26), so the
       # gate is green from its first run and any red means a tell was just
