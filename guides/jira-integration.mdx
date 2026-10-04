@@ -36,6 +36,25 @@ A new ProductBrain **Job** creates a Jira issue (Story by default. Change the is
 
 The issue carries two labels: `pb-job-12` and `pbp-my-project`. Scenario B parses them, Jira Cloud webhooks deliver descriptions in ADF format, so labels are the reliable carrier. Don't remove the `pb-` labels.
 
+## Claim an existing issue
+
+Already have a Jira issue for the work? Link it to a job by hand. Add the same two labels Scenario A would have written:
+
+- `pb-job-12`, where `job-12` is the job's ID in ProductBrain
+- `pbp-my-project`, where `my-project` is your ProductBrain project ID
+
+Type them exactly as shown, lowercase. When the issue reaches a done status category, Scenario B marks the job `done`.
+
+This works because Scenario B never checks who created the issue. Its filter has two conditions: the status category key equals `done`, and the joined labels contain `pb-job-`. The job ID and project ID then come from the labels alone. Things to know:
+
+- **Both labels are required.** The filter only looks for `pb-job-`. Without `pbp-`, Scenario B reads the wrong project ID and the update fails.
+- **One job per issue.** With two `pb-job-` labels, Scenario B uses the last one.
+- **Labelling a finished issue.** If the issue is already in a done status, adding the labels is itself an update, so expect the job to be marked `done` straight away.
+- **Check for a twin.** If Scenario A was on when the job was created, Jira already has a Story with these labels. Remove the `pb-` labels from the one you don't want, or the first of the two to finish marks the job `done`.
+- **JQL scope.** If you scoped the Jira webhook with `labels in ("pb-managed")`, add `pb-managed` too, or Jira never sends the update. Scenario A doesn't add `pb-managed` to the issues it creates, so with that scope you need to add it to those by hand as well.
+
+<Note>This section is read from the two blueprints, not tested against a live Jira site.</Note>
+
 ## Why `delivered`, not `done`?
 
 A completed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition*. Something observable in the deployed product. The integration records the claim (`delivered`). Verifying the proof and marking `done` stays with you or your agent.
