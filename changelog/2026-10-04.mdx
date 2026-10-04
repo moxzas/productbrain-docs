@@ -1,0 +1,22 @@
+---
+title: "October 4, 2026"
+description: "Needs mean one thing everywhere, goals can carry a target, agents can tell us what to fix, and the MCP server reaches every endpoint."
+---
+## Highlights
+
+- **A need means the same thing everywhere**. The agent guide, the docs and the AI that drafts your plan used to disagree about what a need is, so an agent and a person could build different trees in the same project. They now agree: a need is a lasting problem someone faces, and if it can be finished it belongs lower in the tree as an approach or a job. The AI writes needs from the side of the person who has them, turns statements about your own systems ("we have no reporting layer") into the problem someone actually feels, and no longer adds a second copy of a need you already have.
+
+- **Goals can carry a target**. Add a measure to a goal, the same way approaches have one. Numbers like net retention or a revenue target now sit on the goal they belong to, so an objectives layer doesn't have to live beside the tree as a separate list.
+
+- **Your agent can tell us what to fix**. `POST /api/v1/feedback` records a feature request, a bit of friction, a bug or a general note. We read every one. It never goes into your plan and is never sent to a model. Over MCP it's `submit_feedback`.
+
+- **The MCP server covers the whole API**. `@productbrain-com/mcp` 0.1.0 has 27 tools, up from 8: projects, plan history, webhooks, share links, members and budget, export and feedback, alongside search, mutate, the workflow and the live view. The source is public at github.com/moxzas/productbrain-mcp.
+
+## Other improvements
+
+- Inbox triage keeps a customer's request as evidence for the need it speaks to, instead of throwing it away for being phrased as a feature.
+- A memo about your own systems stays in the inbox until someone names who it affects.
+- Claim a Jira issue you already have by adding two labels. No need to create a fresh one.
+- The integration guides now say what really happens when a ticket closes: the job is marked done.
+- The Jira guide no longer suggests a webhook filter that quietly stopped every update.
+- The agent guide links straight to the concept pages and carries the definitions inline, for agents that can't follow links.
