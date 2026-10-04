@@ -1,8 +1,8 @@
 ---
 title: "Jira Integration"
-description: "Hand PB jobs to Jira, get delivered signals back, two Make scenarios, no code."
+description: "Hand PB jobs to Jira, get completion signals back, two Make scenarios, no code."
 ---
-A new ProductBrain **Job** creates a Jira issue (Story by default. Change the issuetype in the blueprint). That container reaching **a done status category** marks the job **`delivered`**, dev work complete, proof condition not yet verified. `done` stays reserved for verified proof. Nothing else crosses the seam.
+A new ProductBrain **Job** creates a Jira issue (Story by default. Change the issuetype in the blueprint). That container reaching **a done status category** marks the job **`done`**. Nothing else crosses the seam.
 
 ## Setup
 
@@ -25,10 +25,10 @@ A new ProductBrain **Job** creates a Jira issue (Story by default. Change the is
     ```
  </Step>
  <Step title="Point Jira at Make">
- Jira → Settings → System → Webhooks → new webhook with Scenario B's URL, event *Issue: updated*. Optionally scope with JQL: `labels in ("pb-managed")`.
+ Jira → Settings → System → Webhooks → new webhook with Scenario B's URL, event *Issue: updated*. Optionally scope it with JQL on your project label, which Scenario A adds to every issue it creates: `labels = "pbp-my-project"`.
  </Step>
  <Step title="Turn both scenarios on">
- Create a job in ProductBrain, Jira issue appears. Complete it, the job shows `delivered`.
+ Create a job in ProductBrain, Jira issue appears. Complete it, the job shows `done`.
  </Step>
 </Steps>
 
@@ -51,12 +51,12 @@ This works because Scenario B never checks who created the issue. Its filter has
 - **One job per issue.** With two `pb-job-` labels, Scenario B uses the last one.
 - **Labelling a finished issue.** If the issue is already in a done status, adding the labels is itself an update, so expect the job to be marked `done` straight away.
 - **Check for a twin.** If Scenario A was on when the job was created, Jira already has a Story with these labels. Remove the `pb-` labels from the one you don't want, or the first of the two to finish marks the job `done`.
-- **JQL scope.** If you scoped the Jira webhook with `labels in ("pb-managed")`, add `pb-managed` too, or Jira never sends the update. Scenario A doesn't add `pb-managed` to the issues it creates, so with that scope you need to add it to those by hand as well.
+- **JQL scope.** If you scoped the Jira webhook on your `pbp-` project label, as the setup suggests, the two labels above already match it. A scope on any other label needs that label on the issue too, or Jira never sends the update.
 
 <Note>This section is read from the two blueprints, not tested against a live Jira site.</Note>
 
-## Why `delivered`, not `done`?
+## When does a job become `done`?
 
-A completed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition*. Something observable in the deployed product. The integration records the claim (`delivered`). Verifying the proof and marking `done` stays with you or your agent.
+In ProductBrain, `done` means the work is live in production. The integration marks the job `done` when its Jira issue reaches a done status category, so point the trigger at the state your team uses for shipped work. If your team closes tickets before a release goes out, move the trigger to the status that means released, or jobs will read `done` early.
 
 <Note>Verified with live Make scenarios against payloads in Jira's documented webhook shape. The first run on your Jira site is the final validation.</Note>

@@ -1,11 +1,11 @@
 ---
 title: "Linear Integration"
-description: "Hand PB jobs to Linear, get delivered signals back, two Make scenarios, no code."
+description: "Hand PB jobs to Linear, get completion signals back, two Make scenarios, no code."
 ---
 ProductBrain sits above your delivery tracker. The integration is a **signal channel at the job level**, not a sync:
 
 - A new ProductBrain **Job** creates a Linear parent issue (the work handoff).
-- That issue reaching **Done** marks the job **`delivered`**, dev work complete, proof condition not yet verified. The `done` state stays reserved for a human (or agent) confirming the proof in the deployed product.
+- That issue reaching **Done** marks the job **`done`**.
 
 Nothing else crosses the seam. Goals, needs, approaches, and phases stay in ProductBrain. Tickets, sprints, and cycles stay in Linear.
 
@@ -39,7 +39,7 @@ Nothing else crosses the seam. Goals, needs, approaches, and phases stay in Prod
  Linear → Settings → API → Webhooks → new webhook with Scenario B's URL, resource type *Issues*.
  </Step>
  <Step title="Turn both scenarios on">
- Create a job in ProductBrain, a Linear issue appears. Move it to Done, the job shows `delivered`.
+ Create a job in ProductBrain, a Linear issue appears. Move it to Done, the job shows `done`.
  </Step>
 </Steps>
 
@@ -53,6 +53,6 @@ PB: job-12 project: my-project · do not edit this line
 
 Scenario B parses it to find the right job. Don't edit or delete that line.
 
-## Why `delivered`, not `done`?
+## When does a job become `done`?
 
-A closed ticket is a *claim* that work is finished. A ProductBrain job is a *proof condition*. Something observable in the deployed product. The integration records the claim (`delivered`). Verifying the proof and marking `done` stays with you or your agent. That distinction is the point of the system.
+In ProductBrain, `done` means the work is live in production. The integration marks the job `done` when its Linear issue reaches Done, so point the trigger at the state your team uses for shipped work. If your team closes tickets before a release goes out, move the trigger to the status that means released, or jobs will read `done` early.
