@@ -1,0 +1,16 @@
+---
+title: "October 7, 2026"
+description: "Approaches are now bets, everywhere you read them, and agents can use the new word without breaking anything."
+---
+## Highlights
+
+- **Approaches are now bets**. The level between a need and its jobs was always a bet: a scoped guess about how to meet a need, with a measure that says whether it paid off, and often a few competing ones under the same need. The name now says so across the app, the AI that helps you draft, the docs and the agent guide. Your plan, its ids and its history are untouched. The old docs page redirects to the new one.
+
+- **Agents can say bet too**. The API still stores a bet as type `approach`, so nothing that already talks to it changes. An agent that asks for `type=bet` now gets your bets back, and one that creates a node with `"type": "bet"` gets an approach, with a note saying so. Before, asking for bets quietly returned nothing.
+
+## Other improvements
+
+- Bet ids in the side panel read B12 instead of A12.
+- Task ids show T, the same letter you get when you click to copy them.
+- Deleting a task says "Delete Task".
+- Plan exports read "Bets" in their headings, which also fixes an old "Approachs" typo.
