@@ -8,7 +8,7 @@ You're an AI agent, Claude Code, Cursor, or similar, and someone you build with 
 
 You are the one who loses the thread. Your context window compacts, the session ends, and the *why* behind the work goes with it. So you confidently ship the thing that was never the priority, and the person you build with burns real cycles catching it. Re-briefing you every session is the most acute, daily cost of building with agents, and it gets worse, not better, the moment more than one of you is in the loop.
 
-ProductBrain is the fix: a structured plan you read *before* you build and write proof back to *as* you ship. Goal → Need → Approach → Job, every piece of work traceable to the business outcome it serves. It is external memory you can't lose to a compaction, and a coordination layer that keeps the whole effort coherent across sessions and across agents.
+ProductBrain is the fix: a structured plan you read *before* you build and write proof back to *as* you ship. Goal → Need → Bet → Job, every piece of work traceable to the business outcome it serves. It is external memory you can't lose to a compaction, and a coordination layer that keeps the whole effort coherent across sessions and across agents.
 
 It is deliberately the half that nothing else covers. IDEs, trackers, CI, and agents like you make *shipping* cheap and cheaper every month. The scarce thing is the layer above delivery, what's worth building and why, and that is exactly what ProductBrain holds.
 
@@ -16,7 +16,7 @@ It is deliberately the half that nothing else covers. IDEs, trackers, CI, and ag
 
 The plan the person you build with shapes here is *theirs*, and it leaves whenever they want, three ways:
 
-- **Full JSON in one call.** `GET /api/v1/nodes` returns the entire project, every goal, need, approach, job, task, and phase. No export tier, no premium gate, no restrictions.
+- **Full JSON in one call.** `GET /api/v1/nodes` returns the entire project, every goal, need, bet, job, task, and phase. No export tier, no premium gate, no restrictions.
 - **Operate and leave over open MCP.** The [Model Context Protocol](/api-reference/mcp) server is a thin shim over the same versioned REST API. It's the open standard, not a proprietary SDK, so the plan is portable to any compatible client.
 - **An OKF bundle, if you want it.** `GET /api/v1/export-okf` emits a vendor-neutral typed-markdown bundle (Google's early [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog) v0.1). The JSON route above is the universal one everything reads. OKF is a bonus for OKF-aware tooling.
 
@@ -70,7 +70,7 @@ These are the few things that will trip you if you skip them. The [LLM Guide](ht
 - **Search first, always.** For any lookup, `GET /api/v1/search?q=...` returns semantic matches ranked by similarity, with ancestor paths for placement context. Do **not** list all nodes and scan by label. That fails on label collisions and doesn't scale.
 - **One write endpoint.** All mutations go through `POST /api/v1/mutate`. The `action` field picks the operation: `add`, `update`, `delete`, `restore`, `batch`. Prefer one `batch` over many calls.
 - **Make retries safe.** Send an `Idempotency-Key` header on writes so a retried call doesn't double-apply. A key in the JSON body is ignored. See [Idempotency](/api-reference/mutations#idempotency).
-- **Respect the hierarchy.** Goal → Need → Approach → Job, plus standalone Tasks. Fields are type-specific. The guide has the full validation contract, and the API also tells you in-band via `_meta` when you get it wrong.
+- **Respect the hierarchy.** Goal → Need → Bet (stored as `type: "approach"`) → Job, plus standalone Tasks. Fields are type-specific. The guide has the full validation contract, and the API also tells you in-band via `_meta` when you get it wrong.
 
 ## A first move
 
@@ -125,7 +125,7 @@ POST /api/v1/mutate
   "data": { "status": "done" } }
 ```
 
-That is the whole reason to work from the tree: the next agent, or the human, opens the plan and sees not just *done*, but the condition that had to hold and how it was met, in history. Nothing asserted, everything checkable. Discover new work mid-build? Add it as a job under the same approach and note it on `job-42`, so the plan stays true to what actually happened.
+That is the whole reason to work from the tree: the next agent, or the human, opens the plan and sees not just *done*, but the condition that had to hold and how it was met, in history. Nothing asserted, everything checkable. Discover new work mid-build? Add it as a job under the same bet and note it on `job-42`, so the plan stays true to what actually happened.
 
 ## What else you can drive
 

@@ -65,8 +65,8 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 |------|--------|-------------|
 | Goal | None. Do not send a `parentId`. | |
 | Need | Required | Goal |
-| Approach | Required | Need |
-| Job | Required | Approach |
+| Bet (`approach`) | Required | Need |
+| Job | Required | Bet (`approach`) |
 | Task | None | |
 
 A task is standalone work that does not fit the tree (bugs, polish, captures). It is created without a `kind`; the API classifies it as `memo` or `do-it` asynchronously. Re-read the node, or call `{ "action": "classify", "nodeId": "task-1" }` to classify it on demand.
@@ -246,12 +246,12 @@ Without an `Idempotency-Key`, retries are not deduplicated. Re-read with `GET /n
 The API validates every mutation before applying it:
 
 - **Label is required** on all nodes.
-- **Parent must exist** and be the correct type (need under goal, approach under need, job under approach).
+- **Parent must exist** and be the correct type (need under goal, bet (`approach`) under need, job under bet).
 - **Fields must match the node type.** Setting `iteration` on a goal or `maturity` on a task is rejected with `'iteration' can only be set on job or task nodes, not on goal`.
 - **Kano values:** `must-have`, `incremental`, `delighter`. `performance` is accepted as an alias for `incremental` and stored as sent.
 - **Size values:** `skateboard`, `vespa`, `car`, `truck`, `antonov`
 - **Maturity values:** `mvp`, `releasable`
-- **Approach status values:** `development`, `validation`, `resolved`, `retired`
+- **Bet status (`approachStatus`) values:** `development`, `validation`, `resolved`, `retired`
 - **Status values:** `done`, or `open` to reopen (`delivered` is accepted but deprecated)
 - **Task kind:** `memo`, `do-it`; `urgent` only on a `do-it` task
 

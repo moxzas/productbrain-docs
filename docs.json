@@ -132,7 +132,7 @@
               "framework/overview",
               "framework/goals",
               "framework/needs",
-              "framework/approaches",
+              "framework/bets",
               "framework/jobs"
             ]
           },
@@ -193,6 +193,14 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/framework/approaches",
+      "destination": "/framework/bets"
+    },
+    {
+      "source": "/framework/approaches.md",
+      "destination": "/framework/bets.md"
+    },
     {
       "source": "/privacy",
       "destination": "/trust/your-data-privacy"

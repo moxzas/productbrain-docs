@@ -35,7 +35,7 @@ curl -s "https://productbrain.com/api/v1/export-okf?projectId=my-project" \
 `files` maps each bundle path to its markdown content. Write each one to disk to materialise the directory.
 
 - **One concept file per node**, organised by type: `goals/<id>.md`, `needs/<id>.md`, `approaches/<id>.md`, `jobs/<id>.md`, `tasks/<id>.md`. The filename is the concept ID.
-- **Frontmatter:** the one required OKF field `type` (`Goal`, `Need`, `Approach`, `Job`, `Task`), plus `title`, `description`, `timestamp` (the node's `createdAt`), and the node's type-specific fields (`status`, `maturity`, `kano`, `size`, `approachStatus`, `iteration`, `measure`, `kind`, `urgent`) as custom keys.
+- **Frontmatter:** the one required OKF field `type` (`Goal`, `Need`, `Approach`, `Job`, `Task`, where a bet exports as `Approach`), plus `title`, `description`, `timestamp` (the node's `createdAt`), and the node's type-specific fields (`status`, `maturity`, `kano`, `size`, `approachStatus`, `iteration`, `measure`, `kind`, `urgent`) as custom keys.
 - **Relationships are markdown links named in prose:** parent, `blockedBy`, and children link to other concept files, for example `[label](/needs/need-1.md)`.
 - A root **`index.md`** declares `okf_version: "0.1"` and lists every concept by type.
 
