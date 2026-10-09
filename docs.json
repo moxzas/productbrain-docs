@@ -110,7 +110,8 @@
               "api-reference/projects",
               "api-reference/members",
               "api-reference/share",
-              "api-reference/tier-status"
+              "api-reference/tier-status",
+              "api-reference/feedback"
             ]
           },
           {
