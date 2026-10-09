@@ -17,6 +17,8 @@ Returns all matching nodes in a project, ordered by creation date. Use it for bu
 | `projectId` | Yes | The project to query |
 | `type` | No | Filter by node type: `goal`, `need`, `approach`, `job`, `task` |
 | `iteration` | No | Filter by phase name (jobs and tasks only) |
+| `externalSystem` | No | Only nodes with an `externalRefs` entry for this system, for example `jira` |
+| `externalKey` | No | Only nodes with an `externalRefs` entry with this key, for example `PROJ-1234`. Combine with `externalSystem` for an exact lookup. |
 
 Passing `q` or `search` returns `400` with a pointer to `/api/v1/search`. This endpoint does not search.
 
@@ -34,7 +36,13 @@ curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project&type=goal" \
 # Jobs in a specific phase
 curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project&type=job&iteration=MVP" \
   -H "Authorization: Bearer pb_..."
+
+# The node for Jira issue PROJ-1234
+curl -s "https://productbrain.com/api/v1/nodes?projectId=my-project&externalSystem=jira&externalKey=PROJ-1234" \
+  -H "Authorization: Bearer pb_..."
 ```
+
+`externalSystem` and `externalKey` match exactly and are case-sensitive. More than one node can carry the same key, so the result is a list.
 
 ### Response
 
@@ -120,8 +128,30 @@ Every node has:
 | `goalStatus` | string | goal | `"focus"`, `"later"`, `"done"` |
 | `kind` | string | task | `"memo"` (untriaged inbox item) or `"do-it"` (small, resolve in place). Set automatically after creation. |
 | `urgent` | boolean | task | Time-critical flag, only on a `do-it` task |
+| `externalRefs` | object[] | all | Pointers to the same thing in another system. See below. |
 
 Setting a type-specific field on the wrong node type is rejected with `400`.
+
+### External references
+
+`externalRefs` records where a node lives in another tool: a Jira key, a roadmap-tool id. Up to 3 entries, one per system.
+
+```json
+"externalRefs": [
+  { "system": "jira", "key": "PROJ-1234", "url": "https://acme.atlassian.net/browse/PROJ-1234" },
+  { "system": "roadmap", "key": "RM-0168" }
+]
+```
+
+| Field | Rules |
+|-------|-------|
+| `system` | Required. Lowercase slug, 2 to 32 characters (`a-z`, `0-9`, `-`), starting with a letter. Free-form: name the tool. |
+| `key` | Required. The id in that system, 1 to 128 characters. |
+| `url` | Optional. `https://` only. |
+
+No other fields are accepted. On update, send the whole list: it replaces the old one. `[]` or `null` clears it.
+
+A reference is a label. ProductBrain never infers hierarchy, sync or a relationship from it. Two nodes may carry the same key. When you write one, the response's `_meta._tip` names the other nodes that already have it. Keys are not part of semantic search: look a key up with the `externalSystem` and `externalKey` filters above. Public share links never show `externalRefs`.
 
 ### Status
 
