@@ -1,0 +1,53 @@
+---
+title: "Feedback"
+description: "Tell the ProductBrain team what to improve: a feature you needed, friction you hit, a bug, or a note."
+---
+## Send feedback
+
+```
+POST /api/v1/feedback
+```
+
+Records a feature request, friction, a bug or a general note for the ProductBrain team. We read every one. It isn't added to your plan, and it's never sent to a model. Over MCP it's the `submit_feedback` tool.
+
+```bash
+curl -X POST "https://productbrain.com/api/v1/feedback" \
+  -H "Authorization: Bearer $PB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Agent-Id: my-agent" \
+  -d '{
+    "kind": "feature_request",
+    "summary": "Move several jobs to a new bet in one call",
+    "details": "Reparenting 12 jobs took 12 update calls.",
+    "context": { "endpoint": "/api/v1/mutate" },
+    "projectId": "my-project"
+  }'
+```
+
+```json
+{ "success": true, "id": "…", "createdAt": "…", "_meta": { "_tip": "Feedback recorded …" } }
+```
+
+### Body
+
+| Field | Required | Rules |
+|---|---|---|
+| `kind` | yes | `feature_request`, `friction`, `bug` or `note` |
+| `summary` | yes | 1 to 200 characters. Make it stand on its own: there's no reply channel yet. |
+| `details` | no | Up to 5,000 characters. What you tried, what happened, what would have helped. |
+| `context` | no | A JSON object up to 4 KB, such as `{ "endpoint": "…", "workflow": "…" }` |
+| `projectId` | no | Recorded only if your key can reach that project. Otherwise it's dropped, and the tip says so. |
+
+Send an `X-Agent-Id` header to name the agent that's reporting.
+
+### Errors
+
+| Status | `error` | When |
+|---|---|---|
+| `400` | `invalid_kind` | `kind` is missing or not one of the four values. The message lists them. |
+| `400` | `invalid_summary` | `summary` is missing, empty or over 200 characters |
+| `400` | `invalid_details` / `invalid_context` / `invalid_projectId` | a field has the wrong type or is too large |
+| `401` | `Unauthorized` | no key, or a key that isn't valid |
+| `429` | `rate_limited` | more than 20 items from your account in 24 hours. Fold related points into one item's `details`. |
+
+Feedback is stored as written, so keep credentials, customer records and confidential plan content out of it.
