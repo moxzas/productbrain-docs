@@ -60,6 +60,14 @@ A bet might ship MVP jobs in one iteration, go quiet while other work progresses
 
 The anti-pattern is a bet that has jobs in every iteration continuously. That means it was scoped as an open-ended project rather than one testable hypothesis. Split it.
 
+## One parent, and the other needs it serves
+
+A bet sits under one need: the one it is scoped against, the one its Kano, size and measure describe. Some builds help more than that. An export layer might serve both "finance can get numbers without an engineer" and "account managers can hand a partner a report". Don't split it into two bets to give each need a child. That hides the shared work. Place it under the need it serves most directly and mark the others as **also served** (the `serves` field). The bet shows `+1 needs` on its card, and the other need shows `+1 from elsewhere`, so it doesn't look neglected.
+
+If a bet ends up serving three or more other needs, look again. Either it's infrastructure whose own need hasn't been written yet, or those needs overlap and should merge.
+
+"Also serves" is not "depends on". A dependency says one bet can't start until another lands. Serving says one build helps several needs.
+
 ## Common pitfalls
 
 ### Infrastructure without a consumer
