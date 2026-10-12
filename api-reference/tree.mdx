@@ -60,7 +60,7 @@ A subtree over 50 nodes adds a `_tip` suggesting a narrower direction or a filte
 
 ### `lateral`: siblings
 
-Nodes with the same parent, excluding the queried node. A root node has no siblings; the response says so in `_meta._tip` rather than returning an empty list silently.
+Nodes with the same parent, excluding the queried node. A root node has no siblings. The response says so in `_meta._tip` rather than returning an empty list silently.
 
 ```json
 { "nodes": [ { "id": "approach-2", "..." : "..." } ] }
@@ -86,6 +86,7 @@ Two details to read carefully:
 
 - `ancestors` includes the node itself as its first entry, then walks up to the root.
 - `children` is the entire subtree below the node, not just direct children. Each entry has a `depth` (direct children are `depth: 1`).
+- On a need, the response also has `alsoServedBy`: the bets placed under other needs that list this need in `serves`. They are not in `children`. See [A bet that serves more than one need](/api-reference/nodes#a-bet-that-serves-more-than-one-need).
 
 ### Errors
 
