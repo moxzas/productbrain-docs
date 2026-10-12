@@ -69,11 +69,11 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 | Job | Required | Bet (`approach`) |
 | Task | None | |
 
-A task is standalone work that does not fit the tree (bugs, polish, captures). It is created without a `kind`; the API classifies it as `memo` or `do-it` asynchronously. Re-read the node, or call `{ "action": "classify", "nodeId": "task-1" }` to classify it on demand.
+A task is standalone work that does not fit the tree (bugs, polish, captures). It is created without a `kind`, and the API classifies it as `memo` or `do-it` asynchronously. Re-read the node, or call `{ "action": "classify", "nodeId": "task-1" }` to classify it on demand.
 
 ## Update a node
 
-PATCH semantics. Include only the fields you want to change; the rest are preserved.
+PATCH semantics. Include only the fields you want to change. The rest are preserved.
 
 ```bash
 curl -X POST "https://productbrain.com/api/v1/mutate" \
@@ -88,11 +88,26 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 # → { "success": true, "node": { "id": "job-45", "type": "job", "parentId": "approach-3", "data": { ... } } }
 ```
 
-`parentId` can be sent alongside `data` to reparent a node; the new parent must be the right type.
+`parentId` can be sent alongside `data` to reparent a node. The new parent must be the right type.
+
+Arrays are replaced, not merged. To change one entry of `externalRefs` or `blockedBy`, send the whole new list.
+
+```bash
+# Point a job at its Jira issue
+curl -X POST "https://productbrain.com/api/v1/mutate" \
+  -H "Authorization: Bearer pb_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "update",
+    "projectId": "my-project",
+    "nodeId": "job-45",
+    "data": { "externalRefs": [{ "system": "jira", "key": "PROJ-1234", "url": "https://acme.atlassian.net/browse/PROJ-1234" }] }
+  }'
+```
 
 ### Status
 
-`done` means live in production. That is the whole gate; there is no separate verification step.
+`done` means live in production. That is the whole gate. There is no separate verification step.
 
 - To close a job or task: `{ "status": "done" }`.
 - To reopen one: `{ "status": "open" }`. It is stored as `null` and `completedAt` is cleared. An explicit `{ "status": null }` does the same.
@@ -150,7 +165,7 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 ```
 
 - `409` if a node with that id already exists (nothing to restore). `404` if no deletion is on record, which is also what you get for a node that was removed as a descendant of another delete.
-- The original parent must still exist. If it was deleted too, restore the parent first; restoring under a missing parent currently fails with `500 { "success": false, "errors": ["Failed to restore node"] }`.
+- The original parent must still exist. If it was deleted too, restore the parent first. Restoring under a missing parent currently fails with `500 { "success": false, "errors": ["Failed to restore node"] }`.
 - Restore does not cascade. It brings back the single node, not its former children.
 
 ## Batch mutations
@@ -196,7 +211,7 @@ How a batch behaves:
 
 - **Validation is all-or-nothing.** Every mutation is validated before anything is written. One invalid mutation rejects the whole batch with `400 { "success": false, "errors": ["mutations[1]: ..."] }`.
 - **Phases first.** `addIteration` entries are applied before any node mutation, so a job can reference a phase created in the same batch.
-- **Temporary IDs.** To reference a node created earlier in the same batch, give it an `id` starting with `draft-` and use that as the `parentId` of a later mutation. It is remapped to the real ID on apply. Do not send other client IDs; any `id` that does not start with `draft-` is used as the real primary key.
+- **Temporary IDs.** To reference a node created earlier in the same batch, give it an `id` starting with `draft-` and use that as the `parentId` of a later mutation. It is remapped to the real ID on apply. Do not send other client IDs. Any `id` that does not start with `draft-` is used as the real primary key.
 - **Apply is sequential, not a single transaction.** If a write fails part-way, the API compensates where it safely can: it deletes the nodes and phases this batch created, newest first, and the `500` reports what it undid.
 
 ```json
@@ -214,7 +229,7 @@ Read `partial` before you retry:
 - Absent: nothing from the batch survives. `rolledBack` says how much was undone. Fix the cause and retry the whole batch.
 - Present: nothing was rolled back (`rolledBack` is `{ "nodes": 0, "iterations": 0 }`) and the batch is partially applied. Reconcile from `GET /nodes` and do not retry.
 
-Compensation is only safe while the batch has applied nothing but creates. Once an `update` or a `delete` has run, undoing the creates could take pre-existing rows with them, so the API stops, changes nothing further, and tells you. Two cases it cannot cover: a function timeout mid-compensation (you see no response at all; treat it like `partial`), and a timeout after the write succeeded (this is what the `Idempotency-Key` fixes). Smaller batches shrink the blast radius.
+Compensation is only safe while the batch has applied nothing but creates. Once an `update` or a `delete` has run, undoing the creates could take pre-existing rows with them, so the API stops, changes nothing further, and tells you. Two cases it cannot cover: a function timeout mid-compensation (you see no response at all, so treat it like `partial`), and a timeout after the write succeeded (this is what the `Idempotency-Key` fixes). Smaller batches shrink the blast radius.
 
 ## Idempotency
 
@@ -253,9 +268,10 @@ The API validates every mutation before applying it:
 - **Maturity values:** `mvp`, `releasable`
 - **Bet status (`approachStatus`) values:** `development`, `validation`, `resolved`, `retired`
 - **Status values:** `done`, or `open` to reopen (`delivered` is accepted but deprecated)
-- **Task kind:** `memo`, `do-it`; `urgent` only on a `do-it` task
+- **Task kind:** `memo` or `do-it`, with `urgent` only on a `do-it` task
+- **External references (`externalRefs`):** any node type, at most 3 entries, one per `system`, with only `system`, `key` and an `https://` `url`. A rejection's `_meta._tip` restates the shape. See [External references](/api-reference/nodes#external-references).
 
-Validation errors return `400 { "success": false, "errors": ["'kano' must be one of: must-have, incremental, performance, delighter"] }` plus `_meta.guide`. Access and tier refusals use `{ "error": "<code>", "message": "..." }` instead; see [Authentication](/api-reference/authentication).
+Validation errors return `400 { "success": false, "errors": ["'kano' must be one of: must-have, incremental, performance, delighter"] }` plus `_meta.guide`. Access and tier refusals use `{ "error": "<code>", "message": "..." }` instead. See [Authentication](/api-reference/authentication).
 
 ## Free-tier node cap
 
