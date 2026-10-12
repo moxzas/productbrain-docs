@@ -1,0 +1,54 @@
+---
+title: "Use Your Agent Through Chat"
+description: "Work on a plan with an assistant that can only read links: no install, no connector, no API key in the chat. You carry the text both ways."
+---
+Some companies lock their laptops down: nothing can be installed, connectors are admin-only, and the only thing your assistant can do with the outside world is fetch a public web page. You can still plan with it in ProductBrain. Your agent reads the plan through a link, writes its changes as text, you paste that text into ProductBrain, and you paste ProductBrain's reply back into the chat. The agent experience feels like the real API. You are the transport.
+
+## What you need
+
+- A ProductBrain project (any tier).
+- An assistant that can fetch a URL you paste, such as Claude with web fetch turned on.
+
+Nothing else. No API key goes into the chat.
+
+## Start a session
+
+1. Open your project and click **Agent relay** in the top bar, then the **Chat session** tab.
+2. Click **New link**. This mints an agent read link: a URL that serves your whole plan as text, written for an agent. It expires in 30 days unless you pick another length, and you can revoke it at any time from the same tab.
+3. Click **Copy prompt** and paste the starter prompt into your chat. It tells the assistant what ProductBrain is, gives it the read link, and asks it to answer with changes in a fixed text format.
+
+The assistant fetches the link, reads the plan, and tells you what it sees.
+
+## Each turn
+
+1. Ask for what you want: a new bet under a need, a job marked done, a need moved, a task deleted.
+2. The assistant answers with a `PB-CHANGES v1` block in a code fence.
+3. Copy its whole message and paste it into **Agent relay**, **Paste changes** tab. ProductBrain finds the block inside the message and shows it as a diff: what gets added, changed (before and after), moved and deleted. Any line it can't accept is marked with the reason and a tip.
+4. If the block deletes anything, tick the confirmation. Click **Apply**. The changes land as one batch, the same path the API uses.
+5. Click **Copy reply** and paste the `PB-REPLY v1` block into the chat. It lists what happened to each line and carries a fresh read link, so the assistant can read the plan again before its next answer.
+
+If a line failed, nothing was applied. The reply says which lines and why, so the assistant fixes them and sends the whole block again.
+
+## What the agent sees
+
+The read link serves markdown: every node with its id in brackets, such as `[need-12]`, and every field in the same `key: value` form the assistant writes back. Notes are included. A large plan shows a summary with a link per goal. The page ends with the writing rules and a reload link that defeats the fetch tool's cache.
+
+The link is a capability. Anyone holding it reads the whole plan, notes included, until it expires or you revoke it. Treat it like a password: don't post it anywhere, and revoke it when the session is over. It is read-only. There is no URL that changes the plan. Writes only happen when you paste a block and click Apply.
+
+## The format, briefly
+
+```
+PB-CHANGES v1 project: ivvy ops: 3
+ADD bet Self-serve venue onboarding UNDER need-12 AS @b1
+  measure: share of venues live without a support ticket
+UPDATE job-44 status: done
+DELETE task-12
+END
+```
+
+One operation per line: `ADD`, `UPDATE`, `MOVE`, `DELETE`, or `ADD phase`. Fields follow on `key: value` lines. The `ops:` count and the `END` line let ProductBrain catch a paste that was cut off. The full reference, including every field, is the [agent relay format](https://productbrain.com/docs/agent-relay-format.md). Your assistant gets the same rules at the end of every read page, so you rarely need to look them up yourself.
+
+## When to use the other paths
+
+- Your agent can run commands or add a connector: use [the API or MCP](/guides/for-ai-agents) instead. It is faster and needs no copying.
+- You have a whole plan as text and want it in once: use **Import plan** in the top bar. The relay is for working turn after turn on a plan that already exists.
