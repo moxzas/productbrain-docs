@@ -167,7 +167,7 @@
           {
             "group": "Releases",
             "pages": [
-              "changelog/2026-10-13",
+              "changelog/2026-10-10",
               "changelog/2026-10-07",
               "changelog/2026-10-04",
               "changelog/2026-09-25",
@@ -197,6 +197,10 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/changelog/2026-10-13",
+      "destination": "/changelog/2026-10-10"
+    },
     {
       "source": "/framework/approaches",
       "destination": "/framework/bets"
