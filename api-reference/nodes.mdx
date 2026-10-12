@@ -135,6 +135,7 @@ Every node has:
 | `urgent` | boolean | task | Time-critical flag, only on a `do-it` task |
 | `externalRefs` | object[] | all | Pointers to the same thing in another system. See below. |
 | `serves` | string[] | approach | Other needs this bet also helps. See below. |
+| `demand` | object[] | need | Evidence that the need is real. See below. |
 
 Setting a type-specific field on the wrong node type is rejected with `400`.
 
@@ -174,6 +175,30 @@ A bet has exactly one parent: the need it is placed under and scoped against. It
 - If a served need is deleted, its id stays in the list and is ignored on read.
 
 `serves` is not `blockedBy`. `blockedBy` is a delivery dependency between bets: one can't start until another lands. Read the other direction with the `serves` filter above, or with [Tree](/api-reference/tree) `direction=context` on the need, which returns `alsoServedBy`. Public share links never show `serves`.
+
+### Demand: evidence on a need
+
+`demand` records who feels a need, what's behind them, and when it was observed. Up to 25 entries, needs only.
+
+```json
+"demand": [
+  { "who": "Acme Logistics", "revenue": { "amount": 1200, "currency": "USD", "period": "month" }, "at": "2026-09-14", "source": "sales-call", "ask": "SSO with their Okta tenant" },
+  { "who": "Globex", "size": "40 seats", "at": "2026-03-02" }
+]
+```
+
+| Field | Rules |
+|-------|-------|
+| `who` | Required. An account or segment, not a named person, 1 to 80 characters. |
+| `at` | Required. The date it was observed, `YYYY-MM-DD`. |
+| `revenue` | Optional. `amount` (0 or more), `currency` (ISO 4217 in capitals, such as `USD`), `period` (`once`, `month` or `year`). Stored as entered, never converted or added up. |
+| `size` | Optional. What's behind them when it isn't money, such as `40 seats`. 1 to 60 characters. |
+| `source` | Optional. A lowercase slug, such as `sales-call`, `support`, `churn` or `crm`. |
+| `ask` | Optional. Their words, at most 140 characters. Never a transcript. |
+
+No other fields are accepted. On update, send the whole list: it replaces the old one. `[]` or `null` clears it.
+
+It's evidence, never a ranking. The date belongs to the entry, not the need, and nothing ages, schedules, ranks or sorts a need by it. No endpoint filters or sorts by `demand`, and there's no total. Public share links never show it, and search doesn't index it.
 
 ### Status
 

@@ -90,7 +90,7 @@ curl -X POST "https://productbrain.com/api/v1/mutate" \
 
 `parentId` can be sent alongside `data` to reparent a node. The new parent must be the right type.
 
-Arrays are replaced, not merged. To change one entry of `externalRefs`, `serves` or `blockedBy`, send the whole new list. Moving a bet under a need it already serves also removes that need from `serves`.
+Arrays are replaced, not merged. To change one entry of `externalRefs`, `serves`, `demand` or `blockedBy`, send the whole new list. Moving a bet under a need it already serves also removes that need from `serves`.
 
 ```bash
 # Point a job at its Jira issue
@@ -270,6 +270,7 @@ The API validates every mutation before applying it:
 - **Status values:** `done`, or `open` to reopen (`delivered` is accepted but deprecated)
 - **Task kind:** `memo` or `do-it`, with `urgent` only on a `do-it` task
 - **External references (`externalRefs`):** any node type, at most 3 entries, one per `system`, with only `system`, `key` and an `https://` `url`. A rejection's `_meta._tip` restates the shape. See [External references](/api-reference/nodes#external-references).
+- **Demand (`demand`):** needs only, at most 25 entries, each with `who` and an `at` date, plus optional `revenue`, `size`, `source` and `ask`. A rejection's `_meta._tip` restates the shape. See [Demand](/api-reference/nodes#demand-evidence-on-a-need).
 - **Served needs (`serves`):** bets only, at most 5 existing need ids, no repeats, never the bet's own parent. See [A bet that serves more than one need](/api-reference/nodes#a-bet-that-serves-more-than-one-need).
 
 Validation errors return `400 { "success": false, "errors": ["'kano' must be one of: must-have, incremental, performance, delighter"] }` plus `_meta.guide`. Access and tier refusals use `{ "error": "<code>", "message": "..." }` instead. See [Authentication](/api-reference/authentication).
