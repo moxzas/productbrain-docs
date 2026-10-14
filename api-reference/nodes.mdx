@@ -141,7 +141,7 @@ Setting a type-specific field on the wrong node type is rejected with `400`.
 
 ### External references
 
-`externalRefs` records where a node lives in another tool: a Jira key, a roadmap-tool id. Up to 3 entries, one per system.
+`externalRefs` records where a node lives in another tool: a Jira key, a roadmap-tool id. Up to 50 entries. One system may appear several times (a goal behind two roadmap objectives), but the same system and key only once.
 
 ```json
 "externalRefs": [
