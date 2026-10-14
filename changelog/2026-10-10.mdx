@@ -8,12 +8,12 @@ description: "Plan with an assistant that can only read links, paste in a plan y
 
 - **Paste in a plan**. If your agent drafted a plan somewhere else, click **Import plan** in the top bar and paste it in, as PLAN.md or JSON. You get a preview of what will be added before anything changes. No connector, no install.
 
-- **Point a node at your tracker**. Any goal, need, bet, job or task can carry up to three links to another system, such as a Jira issue or a Linear project. ProductBrain keeps the pointer and leaves the ticket where it lives.
+- **Point a node at your tracker**. Any goal, need, bet, job or task can carry links to another system in its `externalRefs` field, such as a Jira issue or a Linear project. ProductBrain keeps the pointer and leaves the ticket where it lives. [Field reference](/api-reference/nodes#external-references).
 
 ## Other improvements
 
-- A bet can now serve more than one need. It still sits under one need, and it can list the others it also helps.
-- Needs can hold evidence of demand: who felt it, how much is behind them, and when. It is shown next to the need and never used to rank one need above another.
+- A bet can now serve more than one need. It still sits under one need, and lists the others it also helps in `serves`. [Field reference](/api-reference/nodes#a-bet-that-serves-more-than-one-need).
+- Needs can hold evidence of demand in `demand`: who felt it, how much is behind them, and when. It is shown next to the need and never used to rank one need above another. [Field reference](/api-reference/nodes#demand-evidence-on-a-need).
 - Try it without an account: the [demo](https://productbrain.com/demo) gives your own agent a temporary plan to build while you watch it appear.
 - A new project starts with a choice: use your own agent, use your agent through chat, or start a guided chat with ours.
 - Removing a dependency from a bet in the side panel now sticks after a reload.

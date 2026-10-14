@@ -43,6 +43,22 @@ Read the tree, search by meaning, create nodes, update status, manage iterations
 5. **Agent writes back**, Marks jobs done, adds notes, flags issues
 6. **You review**. Check the Delivery Map to see progress across all your bets
 
+## Three ways to connect an agent
+
+- **REST API**. Give your agent an API key and the [LLM guide](https://productbrain.com/docs/llm-guide.md). Works from any agent that can make HTTP calls. Start with the [Builder Quickstart](/guides/builder-quickstart).
+- **MCP server**. Claude Desktop, Claude Code and Cursor can drive the plan as MCP tools with `npx -y @productbrain-com/mcp`. Same API underneath, same coaching in every response. See [MCP Server](/api-reference/mcp).
+- **Through chat, no install**. If your assistant can only read web pages (a locked-down laptop, connectors turned off), open **Agent relay** in the app and start a chat session. The assistant reads the plan through a private link and replies with its changes as text, and you paste them in. See [Use Your Agent Through Chat](/guides/agent-through-chat).
+
+## Link the plan to the tools you already use
+
+ProductBrain sits beside your tracker and roadmap tool. It doesn't replace them. Three fields help an agent keep the two in step:
+
+- **`externalRefs`** on any node: pointers to the same thing elsewhere, such as a Jira key or a roadmap item. Several per tool are fine. See [External references](/api-reference/nodes#external-references).
+- **`serves`** on a bet: the other needs it also helps, beyond the one it sits under. See [A bet that serves more than one need](/api-reference/nodes#a-bet-that-serves-more-than-one-need).
+- **`demand`** on a need: who felt it, what's behind them, and when. Evidence, never a ranking. See [Demand](/api-reference/nodes#demand-evidence-on-a-need).
+
+What changed recently is in the [changelog](/changelog).
+
 ## Get Started
 
 <CardGroup cols={2}>

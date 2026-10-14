@@ -19,6 +19,10 @@
   "navbar": {
     "links": [
       {
+        "label": "Changelog",
+        "href": "/changelog"
+      },
+      {
         "label": "Blog",
         "href": "https://blog.productbrain.com"
       }

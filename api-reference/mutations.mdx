@@ -269,7 +269,7 @@ The API validates every mutation before applying it:
 - **Bet status (`approachStatus`) values:** `development`, `validation`, `resolved`, `retired`
 - **Status values:** `done`, or `open` to reopen (`delivered` is accepted but deprecated)
 - **Task kind:** `memo` or `do-it`, with `urgent` only on a `do-it` task
-- **External references (`externalRefs`):** any node type, at most 3 entries, one per `system`, with only `system`, `key` and an `https://` `url`. A rejection's `_meta._tip` restates the shape. See [External references](/api-reference/nodes#external-references).
+- **External references (`externalRefs`):** any node type, at most 50 entries, no `system` + `key` pair twice, with only `system`, `key` and an `https://` `url`. A rejection's `_meta._tip` restates the shape. See [External references](/api-reference/nodes#external-references).
 - **Demand (`demand`):** needs only, at most 25 entries, each with `who` and an `at` date, plus optional `revenue`, `size`, `source` and `ask`. A rejection's `_meta._tip` restates the shape. See [Demand](/api-reference/nodes#demand-evidence-on-a-need).
 - **Served needs (`serves`):** bets only, at most 5 existing need ids, no repeats, never the bet's own parent. See [A bet that serves more than one need](/api-reference/nodes#a-bet-that-serves-more-than-one-need).
 
