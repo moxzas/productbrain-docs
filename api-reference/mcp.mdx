@@ -1,6 +1,6 @@
 ---
 title: "MCP Server"
-description: "Connect ProductBrain to Claude Desktop, Claude Code, or Cursor over MCP."
+description: "Connect ProductBrain to Claude Code, Claude Desktop, Cursor or an agent gateway over MCP, hosted or local."
 ---
 The ProductBrain MCP server lets an MCP client (Claude Desktop, Claude Code, Cursor) drive your plan directly: search, read, mutate, run the planning methodology, drive the live view, and manage projects, webhooks, share links and seats.
 
@@ -8,7 +8,30 @@ The ProductBrain MCP server lets an MCP client (Claude Desktop, Claude Code, Cur
 **A thin shim, on purpose.** The server is a thin transport over ProductBrain's versioned v1 REST API. Each tool is one call to an existing `/api/v1` endpoint, and a tool result is that endpoint's JSON verbatim, including the `_meta` coaching. The REST contract stays canonical: the [LLM Guide](https://productbrain.com/docs/llm-guide.md) is the contract for every tool below, and you can drop to raw HTTP or bring your own LLM at any time.
 </Note>
 
-## Install
+## Hosted endpoint (no install)
+
+Use this when you can't run local processes, for example on a locked-down corporate laptop. Your client connects to a URL and nothing runs on your machine.
+
+| | |
+|---|---|
+| URL | `https://productbrain.com/api/v1/mcp` |
+| Transport | Streamable HTTP (stateless, JSON responses) |
+| Auth header | `Authorization: Bearer pb_your_key` |
+
+```bash Claude Code
+claude mcp add --transport http productbrain https://productbrain.com/api/v1/mcp \
+  --header "Authorization: Bearer pb_your_key"
+```
+
+Your key goes straight through to the REST API, so tier gates, project access, rate limits and logging are the same as calling the API directly. A request without a key gets a `401`. The hosted endpoint has no default project, so pass `projectId` on each tool call. `list_projects` shows the projects your key can reach.
+
+<Warning>
+**claude.ai and Claude Desktop custom connectors don't work yet.** "Add custom connector" requires OAuth, which ProductBrain doesn't offer yet. On Claude Team or Enterprise, an org admin can attach a static `Authorization: Bearer` header to the connector instead. Agent gateways and other clients that let you set request headers work today.
+</Warning>
+
+## Local server (npx)
+
+For machines that can run local processes, the same tools run as a local stdio server.
 
 <CodeGroup>
 
@@ -39,7 +62,7 @@ claude mcp add productbrain \
 
 Cursor and other clients: add an `mcpServers` entry with the same `command`, `args` and `env`.
 
-## Configuration
+## Configuration (local server)
 
 | Variable | Required | Default |
 |---|---|---|
@@ -49,7 +72,7 @@ Cursor and other clients: add an `mcpServers` entry with the same `command`, `ar
 
 ## Tools
 
-25 tools, one per endpoint operation. Every response carries the same `_meta` coaching the REST API returns.
+27 tools, one per endpoint operation, on both the hosted endpoint and the local server. Every response carries the same `_meta` coaching the REST API returns.
 
 **The plan**
 
@@ -57,10 +80,11 @@ Cursor and other clients: add an `mcpServers` entry with the same `command`, `ar
 |---|---|---|
 | `search` | `GET /search` | Semantic search. Use first for any lookup. Arguments: `q`, `projectId?` |
 | `list_nodes` | `GET /nodes` | Bulk read, optional `type` and `iteration` filters |
-| `get_tree` | `GET /tree` | A node in context. `relation` is `context` (default), `ancestors`, `subtree` or `siblings`; the endpoint's own `up`, `down`, `lateral`, `context` are accepted too |
-| `mutate` | `POST /mutate` | `action` plus the rest of the v1 body in `payload`. Actions: `add`, `update`, `delete`, `restore`, `batch`, `classify`, `addIteration`, `updateIteration`, `deleteIteration`, `reorderIterations`. Pass `idempotencyKey`; it becomes the `Idempotency-Key` header |
+| `get_tree` | `GET /tree` | A node in context. `relation` is `context` (default), `ancestors`, `subtree` or `siblings`. The endpoint's own `up`, `down`, `lateral`, `context` are accepted too |
+| `mutate` | `POST /mutate` | `action` plus the rest of the v1 body in `payload`. Actions: `add`, `update`, `delete`, `restore`, `batch`, `classify`, `addIteration`, `updateIteration`, `deleteIteration`, `reorderIterations`. Pass `idempotencyKey` and it becomes the `Idempotency-Key` header |
 | `list_iterations` | `GET /iterations` | Phases. `current: true` for the active one, `status` to filter |
 | `run_workflow` | `POST /workflow` | The planning methodology with your own LLM. `body` is the v1 workflow body: `{ action: "start", flow, input }` or `{ action: "advance", state, response }` |
+| `get_changelog` | `GET /changelog` | The plan's history, newest first. Find a deleted node's id, then `mutate` with `restore`. Filters: `nodeId`, `action`, `source`, `agentId`, `since`, `before` |
 
 **The view**
 
@@ -74,7 +98,7 @@ Cursor and other clients: add an `mcpServers` entry with the same `command`, `ar
 | Tool | Maps to | Use |
 |---|---|---|
 | `list_projects` | `GET /projects` | Projects you own or are a member of. `includeArchived` for the rest |
-| `create_project` | `POST /mutate {addProject}` | Bootstrap a brain. Seeds the system `Later` phase. Pass an explicit `id`; `addProject` is not retry-safe |
+| `create_project` | `POST /mutate {addProject}` | Bootstrap a brain. Seeds the system `Later` phase. Pass an explicit `id`, because `addProject` is not retry-safe |
 | `rename_project` | `POST /mutate {renameProject}` | Change the display name. The id is immutable |
 | `archive_project` | `PATCH /projects` | Hide or unhide without deleting (reversible) |
 
@@ -110,6 +134,7 @@ Cursor and other clients: add an `mcpServers` entry with the same `command`, `ar
 | `invite_contributor` | `POST /members` | Passwordless guest invite, scoped to the projects you name (Team plan) |
 | `revoke_member` | `DELETE /members` | Remove a seat. An agent's key dies with its last membership |
 | `tier_status` | `GET /tier-status` | Your plan, API access, credit balance and limits. Check before a large run |
+| `submit_feedback` | `POST /feedback` | Tell the ProductBrain team what to improve: `kind` (`feature_request`, `friction`, `bug`, `note`) and a one-line `summary` |
 
 Two conveniences the shim adds: `create_project` and `rename_project` are tools even though the server implements them as `/mutate` actions, and `mutate` takes an `idempotencyKey` argument that becomes the header. Everything else is a one-to-one pass-through: the tier gates, error shapes and one-time secrets are exactly as documented on the endpoint pages.
 
