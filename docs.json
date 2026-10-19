@@ -171,6 +171,7 @@
           {
             "group": "Releases",
             "pages": [
+              "changelog/2026-10-17",
               "changelog/2026-10-10",
               "changelog/2026-10-07",
               "changelog/2026-10-04",

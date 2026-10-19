@@ -1,0 +1,17 @@
+---
+title: "October 17, 2026"
+description: "Send feedback without leaving the app, point a node at every tracker item behind it, and start on your own plan from the first click."
+---
+## Highlights
+
+- **Send feedback from the app**. Open the ☰ menu and choose **Feedback**: pick idea, friction, bug or note, write one line, add detail if you like. It reaches the team with your project and view attached. Agents can still post feedback through the API.
+
+- **Point a node at every tracker item behind it**. `externalRefs` now holds up to 50 links, and one tool can appear several times, so a goal can carry both roadmap objectives it rolls up from. Listing the same key twice is still refused. [Field reference](/api-reference/nodes#external-references).
+
+- **Start on your own plan**. A new account now opens on its own blank project, with the short walkthrough of how a plan fits together and the choice of how to build it. The example plan is still one click away. Before, new accounts opened on the example and skipped the walkthrough.
+
+## Other improvements
+
+- The [agent guide](https://productbrain.com/docs/llm-guide.md) now opens with a version date and tells agents how to fetch a fresh copy, because fetch tools often hand back a cached one.
+- The [builder guide](/guides/builder-intro) covers all three ways to connect an agent: the REST API, the MCP server, and chat through the relay.
+- Creating a project from the project menu now closes the dialog once the project exists. It used to stay open, and a second click said the name was taken.
