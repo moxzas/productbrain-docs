@@ -15,8 +15,8 @@ Returns all matching nodes in a project, ordered by creation date. Use it for bu
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `projectId` | Yes | The project to query |
-| `type` | No | Filter by node type: `goal`, `need`, `approach`, `job`, `task` |
-| `iteration` | No | Filter by phase name (jobs and tasks only) |
+| `type` | No | Filter by node type: `goal`, `need`, `approach`, `job`, `task`. Common words from other tools are read as the real type, with a `_meta._tip`: `bet` and `epic` → `approach`, `ticket`, `issue` and `story` → `job`, `objective` and `okr` → `goal`, `opportunity` and `problem` → `need`. Full table: [Vocabulary](https://productbrain.com/docs/llm-guide.md#vocabulary). |
+| `iteration` | No | Filter by phase name (jobs and tasks only). `sprint=` and `milestone=` are read the same way. |
 | `externalSystem` | No | Only nodes with an `externalRefs` entry for this system, for example `jira` |
 | `externalKey` | No | Only nodes with an `externalRefs` entry with this key, for example `PROJ-1234`. Combine with `externalSystem` for an exact lookup. |
 | `serves` | No | A need id. Only bets placed under other needs whose `serves` lists it. The need's own bets are not included. |

@@ -1,0 +1,13 @@
+---
+title: "October 23, 2026"
+description: "Give an agent a seat that can read your plan but never change it, and let agents use the words they already know."
+---
+## Highlights
+
+- **Read-only agent seats**. Give an agent a seat that can read the whole plan but cannot change or delete anything in it: a report bot, a reviewer, or a stakeholder's assistant that answers questions about the plan. Tick **Read only** when you add an agent seat in Team members, or pass `"role": "viewer"` through the API or MCP. Every write it tries is refused with a clear reason and changes nothing. You can switch a seat between read-only and editor at any time, and its key stays the same. [How it works](/api-reference/members#read-only-seats).
+
+- **Agents can use the words they already know**. An agent used to Jira or Linear can send `epic`, `ticket`, `story` or `sprint` and get the right result, with a note saying how ProductBrain reads it: an epic is a bet, a ticket is a job, a sprint is a phase. Before, a filter like `type=ticket` quietly returned nothing. Words that mean different things in different tools, like `feature` or `initiative`, are left for the agent to translate. [Full table](https://productbrain.com/docs/llm-guide.md#vocabulary).
+
+## Other improvements
+
+- The no-login demo offers a few one-click starter ideas when you want to watch your agent build a plan but don't have an idea of your own to hand.

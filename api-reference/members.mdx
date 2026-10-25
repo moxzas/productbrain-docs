@@ -62,10 +62,32 @@ curl -X POST "https://productbrain.com/api/v1/members" \
 - Prefer `projectIds` when one agent works across several of your projects: one key to store, rotate and audit, and one seat however many projects it spans. Pass the `projectId` you mean on each request as usual.
 - You must own every project you name. Otherwise `403 { "error": "not_owner", "message": "You do not own: ..." }` and nothing is created.
 - Adding a project later means POSTing the full list again, which mints a new identity and key. Name every project up front.
-- On Builder you get the owner seat plus your own key from the app; provision your agent with that. Asking for a seat anyway returns `403 { "error": "team_tier_required", "message": "Adding members requires the Team tier." }`.
+- On Builder you get the owner seat plus your own key from the app. Provision your agent with that. Asking for a seat anyway returns `403 { "error": "team_tier_required", "message": "Adding members requires the Team tier." }`.
 - At the seat cap: `403 { "error": "seat_limit", "message": "Your plan allows 5 seats. Remove a member or upgrade." }`.
 
 The agent's key works on every endpoint. On `/mutate` and `/workflow` it rides the owner's Team plan and the owner's node limit.
+
+## Read-only seats
+
+A seat can be read-only: it reads the project but cannot change or delete anything in it. Use it for an agent that reports on the plan, answers questions about it or reviews it, where a stray write would be a mistake. Pass `role` when you mint the seat: `"editor"` (the default) or `"viewer"`.
+
+```bash
+# Mint a read-only seat
+curl -X POST "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "agent": { "name": "Report bot", "role": "viewer" } }'
+
+# Switch an existing agent seat (owner only, the key stays the same)
+curl -X PATCH "https://productbrain.com/api/v1/members" \
+  -H "Authorization: Bearer pb_..." -H "Content-Type: application/json" \
+  -d '{ "projectId": "my-project", "userId": "agent_9f3a...", "role": "editor" }'
+```
+
+- A read-only seat can read everything (`/nodes`, `/tree`, `/search`, `/iterations`, `/changelog`, `/export-okf` and the rest), send view commands, post feedback and remove itself.
+- Every write is refused with `403 read_only_seat` and changes nothing: every `/mutate` action, `/workflow`, and `/share` (a share link would outlive the seat). Owner-only calls refuse it as they refuse any member.
+- `GET /api/v1/members` returns each seat's `role`, and `GET /api/v1/projects` returns `seatRole`, so an agent can check before it tries to write.
+- In the app, tick **Read only** under "Add an agent seat" in Team members. Over MCP, use `add_agent_seat` with `role: "viewer"` or `set_seat_role`.
+- Read-only is for agent seats. People are added as editors: `role: "viewer"` on an email invite returns `400 role_agents_only`.
 
 ## Add an existing user
 
